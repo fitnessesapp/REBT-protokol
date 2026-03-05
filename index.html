@@ -137,19 +137,15 @@ function fallbackSpeak(chunk){var s=window.speechSynthesis;if(s){var u=new Speec
 function stopAudio(){audioQueue=[];audioPlaying=false;if(window.speechSynthesis)window.speechSynthesis.cancel();updateSI(false)}
 function updateSI(on){var el=document.getElementById('speak-ind');if(el)el.style.display=on?'inline-block':'none'}
 
-/* --- Claude API via Netlify Function proxy --- */
-async function callClaude(prompt) {
+/* --- AI API via Netlify Function proxy --- */
+async function callAI(prompt) {
   try {
-    console.log('[Claude] Saljem zahtev preko proxy...');
+    console.log('[AI] Saljem zahtev na novi Gemini backend...');
 
-    const response = await fetch('/api/claude', {
+    const response = await fetch('/api/rebt', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1200,
-        temperature: 0.65,
-        system: 'Ti si REBT terapeut specijalizovan za food cravings. Govoris srpski, prirodno i toplo, kao da sedis naspram klijenta. Koristis "ti" formu. Budi konkretan — referisi se na TACNO ono sto klijent kaze, koristeci njegove reci. Ne budi generican. Ne koristi klinicke termine. Govori kao mudar prijatelj koji razume REBT. Odgovori ISKLJUCIVO u JSON formatu, bez markdown-a, bez backtick-a.',
         messages: [{ role: 'user', content: prompt }]
       })
     });
@@ -164,11 +160,11 @@ async function callClaude(prompt) {
     text = text.replace(/```json\s*|\s*```/g, '').trim();
 
     const parsed = JSON.parse(text);
-    console.log('[Claude] USPESNO:', parsed);
+    console.log('[AI] USPESNO! Odgovorio model:', data.source, parsed);
     return parsed;
 
   } catch (err) {
-    console.error('[Claude] GRESKA:', err.message || err);
+    console.error('[AI] GRESKA:', err.message || err);
     return null;
   }
 }
@@ -194,7 +190,7 @@ async function generatePersonalized(){
     '  "shame_task": "Konkretan, mali shame attack eksperiment vezan za OVU situaciju i OVO uverenje. Specifican, izvodljiv danas ili sutra. 2-3 recenice.",\n'+
     '  "rei_scene": "Kratka personalizovana REI scena za zamisljanje — opis scene koji koristi klijentovu situaciju iz A. 1-2 recenice."\n'+
     '}\n\nVAZNO: Odgovori SAMO JSON. Bez teksta pre ili posle. Bez backtick-a. Koristi klijentove tacne reci gde god mozes.';
-  return await callClaude(prompt);
+  return await callAI(prompt);
 }
 
 /* --- UI helpers --- */
