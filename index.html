@@ -187,8 +187,8 @@ async function generatePersonalized(){
     '  "d_func_yes": "Odgovor ako DA — citiraj klijentove reci iz C da pokaze kontradikciju (2-3 recenice)",\n'+
     '  "d_func_no": "Odgovor ako NE (1-2 recenice)",\n'+
     '  "e_new_belief": "Novo racionalno uverenje — DIREKTNO preformulisi klijentovo uverenje iz B. Ne budi generican. Koristi klijentove reci i situaciju. Fleksibilna preferencija umesto zahteva. Max 3 recenice.",\n'+
-    '  "shame_task": "Konkretan shame attack eksperiment vezan za OVU situaciju i OVO uverenje. Mora napadati STID ili STRAH direktno — klijent treba da ocekuje neprijatnost, a onda vidi da svet nije propao. NIJE shame attack: odlaganje obroka, pijenje vode, disanje — to je urge surfing. Pravi primer: planski pojedi zabranjeno jelo pred nekim, ili u kaficiu, svesno i bez kompenzacije. Specifican, izvodljiv danas ili sutra. 2-3 recenice.",\n'+
-    '  "rei_scene": "Kratka personalizovana REI scena za zamisljanje — opis scene koji koristi klijentovu situaciju iz A. 1-2 recenice."\n'+
+    '  "shame_task": "VAZNO — analiziraj klijentovo uverenje iz B i emocije/ponasanje iz C pre nego sto predlozis eksperiment. Postoje DVA tipa: (1) Ako je motivacija ZABAVA, UZIVANJE, OLAKSANJE ili DOSADA (niska tolerancija na frustraciju, Ellis-ov treci mus), predlozi EKSPERIMENT TOLERANCIJE: klijent svesno bira alternativni izvor zadovoljstva iste veceri i bezi da li mu je OK i bez hrane. (2) Ako je motivacija STRAH OD NEUSPEHA, STID ili SRAMOTA, predlozi pravi SHAME ATTACK koji napada taj strah direktno. Budi konkretan, izvodljiv danas ili sutra. 2-3 recenice.",\n'+
+    '  "rei_scene": "REI scena — NEGATIVNI scenario. Klijent zamišlja kako POPUŠTA uverenju i kako se oseća POSLE: krivica, stid, osecaj poraza, tegoba u telu. Koristi klijentovu situaciju iz A i ponasanje iz C_do. NE opisuj pozitivnu alternativu — opisuj negativnu posledicu koju klijent treba emotivno da dozivi pre nego sto je promeni. 1-2 recenice."\n'+
     '}\n\nVAZNO: Odgovori SAMO JSON. Bez teksta pre ili posle. Bez backtick-a. Koristi klijentove tacne reci gde god mozes.';
   return await callAI(prompt);
 }
@@ -329,8 +329,12 @@ function renderD(){
     var card=h('div','dcard');
     card.innerHTML='<div class="dt">'+qq.type+'</div><div class="dq">'+esc(qq.q)+'</div>';
     var row=h('div','ynr'),yb=h('button','yn','Da'),nb2=h('button','yn','Ne'),fb=h('div','da');fb.style.display='none';
-    yb.onclick=function(){yb.className='yn on';nb2.className='yn';fb.textContent=qq.y;fb.style.display='block';speak(qq.y);ans[idx]=true;ck()};
-    nb2.onclick=function(){nb2.className='yn on';yb.className='yn';fb.textContent=qq.n;fb.style.display='block';speak(qq.n);ans[idx]=true;ck()};
+    yb.onclick=function(){yb.className='yn on';nb2.className='yn';
+      fb.innerHTML='<p style="margin-bottom:12px">'+esc(qq.y)+'</p>'+
+        '<textarea class="ta" placeholder="Tvoja misao (opciono)..." style="min-height:64px;font-size:13px;margin-bottom:0"></textarea>'+
+        '<div class="dict-hint">🎤 Mikrofon na tastaturi za diktaciju</div>';
+      fb.style.display='block';speak(qq.y);ans[idx]=true;ck()};
+    nb2.onclick=function(){nb2.className='yn on';yb.className='yn';fb.innerHTML='<p>'+esc(qq.n)+'</p>';fb.style.display='block';speak(qq.n);ans[idx]=true;ck()};
     row.appendChild(yb);row.appendChild(nb2);card.appendChild(row);card.appendChild(fb);inner.appendChild(card);
   });
   var nb=h('button','bp','Dalje');nb.disabled=true;nb.id='dnb';
@@ -397,11 +401,12 @@ function renderREI(){
   inner.appendChild(h('div','label','REI \u2014 Zamisljanje'));
   var bp=S.bodyWhere.split(' \u2014')[0].toLowerCase();
   var scene=AI.rei_scene||'Zamisli svoju situaciju.';
+  var feelShort=S.c_feel.length>60?S.c_feel.substring(0,60)+'...':S.c_feel;
   var steps=[
     {text:esc(scene)+' Pusti najgore osecanje. Oseti ga u '+bp+'u. <strong>Ostani tu.</strong>',
      speak:scene+' Pusti najgore osecanje. Oseti ga u '+bp+'u. Ostani tu.',dur:25},
-    {text:'Sad pomeri to osecanje za jedan stepen. Sa panike na zaljenje. Sa gadenja na razocarenje. Ne uklanjaj, samo spusti.',
-     speak:'Sad pomeri to osecanje za jedan stepen nize. Ne uklanjaj ga. Samo spusti.',dur:20},
+    {text:'Sad pomeri to osecanje za jedan stepen. Znas taj osecaj — <em>"'+esc(feelShort)+'"</em>. Pusti ga da se spusti za jedan nivo. Ne uklanjaj, samo smanji intenzitet.',
+     speak:'Sad pomeri to osecanje za jedan stepen. Znas taj osecaj — '+feelShort+'. Pusti ga da se spusti za jedan nivo. Ne uklanjaj, samo smanji.',dur:20},
     {text:'Izgovori naglas:<br><br><em>"'+esc(S.e_gen)+'"</em>',
      speak:'Izgovori naglas. '+S.e_gen,dur:15}
   ];
