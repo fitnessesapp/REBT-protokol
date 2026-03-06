@@ -187,7 +187,7 @@ async function generatePersonalized(){
     '  "d_func_yes": "Odgovor ako DA — citiraj klijentove reci iz C da pokaze kontradikciju (2-3 recenice)",\n'+
     '  "d_func_no": "Odgovor ako NE (1-2 recenice)",\n'+
     '  "e_new_belief": "Novo racionalno uverenje — DIREKTNO preformulisi klijentovo uverenje iz B. Ne budi generican. Koristi klijentove reci i situaciju. Fleksibilna preferencija umesto zahteva. Max 3 recenice.",\n'+
-    '  "shame_task": "Konkretan, mali shame attack eksperiment vezan za OVU situaciju i OVO uverenje. Specifican, izvodljiv danas ili sutra. 2-3 recenice.",\n'+
+    '  "shame_task": "Konkretan shame attack eksperiment vezan za OVU situaciju i OVO uverenje. Mora napadati STID ili STRAH direktno — klijent treba da ocekuje neprijatnost, a onda vidi da svet nije propao. NIJE shame attack: odlaganje obroka, pijenje vode, disanje — to je urge surfing. Pravi primer: planski pojedi zabranjeno jelo pred nekim, ili u kaficiu, svesno i bez kompenzacije. Specifican, izvodljiv danas ili sutra. 2-3 recenice.",\n'+
     '  "rei_scene": "Kratka personalizovana REI scena za zamisljanje — opis scene koji koristi klijentovu situaciju iz A. 1-2 recenice."\n'+
     '}\n\nVAZNO: Odgovori SAMO JSON. Bez teksta pre ili posle. Bez backtick-a. Koristi klijentove tacne reci gde god mozes.';
   return await callAI(prompt);
