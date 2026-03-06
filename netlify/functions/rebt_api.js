@@ -92,7 +92,7 @@ async function tryGeminiFlash(systemPrompt, userPrompt, apiKey) {
     }],
     generationConfig: {
       temperature: 0.5,
-      maxOutputTokens: 3000,
+      maxOutputTokens: 8192,
       responseMimeType: "application/json" // Forsira čist JSON izlaz
     }
   };
@@ -124,7 +124,7 @@ async function tryGroq(systemPrompt, userPrompt, apiKey) {
     body: JSON.stringify({
       model: 'llama-3.3-70b-versatile',
       temperature: 0.5,
-      max_tokens: 3000,
+      max_tokens: 4096,
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt }
