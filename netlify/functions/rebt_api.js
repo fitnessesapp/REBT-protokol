@@ -67,7 +67,7 @@ KADA KLIJENT POKLEKNE:
 FORMAT: Odgovaraj ISKLJUCIVO u JSON formatu. Bez teksta pre/posle. Bez backtick-a. Koristi klijentove tacne reci.`;
 
 async function tryGeminiFlash(systemPrompt, userPrompt, apiKey) {
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
   
   const payload = {
     systemInstruction: {
