@@ -53,9 +53,12 @@ ZA FOOD CRAVINGS SPECIFICNO:
 - Prejedanje je diverzija — privremeno olaksanje, ne resenje
 
 SHAME ATTACK:
-- Namerno uradi ono cega se plasis, u kontrolisanom okruzenju
-- Za food cravings: planski pojedi "zabranjeno", svesno, bez kompenzacije
-- Jaz izmedju ocekivanja i realnosti = emocionalni uvid
+- Namerno uradi ono cega se SRAMAS ili plasis, svesno, u stvarnoj situaciji
+- Za food cravings: planski pojedi "zabranjeno" jelo SA nekim, ili pred ogledalom, polako i svesno — bez kompenzacije posle
+- Jaz izmedju ocekivanja katastrofe i stvarne reakcije = emocionalni uvid
+- NIJE shame attack: odlaganje obroka, pijenje vode, disanje, pravljenje liste — to je urge surfing ili bihevioralni eksperiment, korisno ali razlicito
+- Pravi shame attack mora napadati STID ili STRAH direktno — klijent mora ocekivati da ce biti neprijatno/sramotno, a onda videti da svet nije propao
+- Primeri pravog shame attack-a: pojedi "zabranjeno" jelo u kafiću bez krivice, reci prijatelju da si se prejeo bez izvinjavanja, kupi tortu i pojedi deo pred kasirkom
 
 KADA KLIJENT POKLEKNE:
 - NE osudjuj, NE kazi "nista strasno" povrsno
