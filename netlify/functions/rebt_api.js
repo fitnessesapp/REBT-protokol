@@ -152,7 +152,7 @@ exports.handler = async (event) => {
     if (GEMINI_KEY) {
       try {
         text = await tryGeminiFlash(systemPrompt, userPrompt, GEMINI_KEY);
-        source = 'gemini-1.5-flash';
+        source = 'gemini-2.5-flash';
         console.log('[REBT] Gemini Flash OK');
       } catch (geminiErr) {
         console.log('[REBT] Gemini failed:', geminiErr.message, '-> falling back to Groq');
