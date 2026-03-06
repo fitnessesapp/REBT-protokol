@@ -159,7 +159,23 @@ async function callAI(prompt) {
     let text = data.content.map(c => c.text || '').join('');
     text = text.replace(/```json\s*|\s*```/g, '').trim();
 
-    const parsed = JSON.parse(text);
+    let parsed;
+    try {
+      parsed = JSON.parse(text);
+    } catch(parseErr) {
+      // Pokusaj da popravimo odseceni JSON dodavanjem zatvarajucih znakova
+      let fixed = text;
+      // Zatvori otvorene stringove i objekte
+      const openBraces = (fixed.match(/{/g)||[]).length - (fixed.match(/}/g)||[]).length;
+      if(fixed.match(/"[^"]*$/)){ fixed += '"'; } // zatvori otvoreni string
+      for(let i=0;i<openBraces;i++){ fixed += '}'; }
+      try {
+        parsed = JSON.parse(fixed);
+        console.warn('[AI] JSON bio odsecen, popravljen.');
+      } catch(e2) {
+        throw new Error('Unterminated string in JSON at position ' + parseErr.message);
+      }
+    }
     console.log('[AI] USPESNO! Odgovorio model:', data.source, parsed);
     return parsed;
 
