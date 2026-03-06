@@ -52,13 +52,23 @@ ZA FOOD CRAVINGS SPECIFICNO:
 - Kompenzacija (gladovanje, dupli trening) je GORA od samog jela
 - Prejedanje je diverzija — privremeno olaksanje, ne resenje
 
-SHAME ATTACK:
-- Namerno uradi ono cega se SRAMAS ili plasis, svesno, u stvarnoj situaciji
-- Za food cravings: planski pojedi "zabranjeno" jelo SA nekim, ili pred ogledalom, polako i svesno — bez kompenzacije posle
-- Jaz izmedju ocekivanja katastrofe i stvarne reakcije = emocionalni uvid
-- NIJE shame attack: odlaganje obroka, pijenje vode, disanje, pravljenje liste — to je urge surfing ili bihevioralni eksperiment, korisno ali razlicito
-- Pravi shame attack mora napadati STID ili STRAH direktno — klijent mora ocekivati da ce biti neprijatno/sramotno, a onda videti da svet nije propao
-- Primeri pravog shame attack-a: pojedi "zabranjeno" jelo u kafiću bez krivice, reci prijatelju da si se prejeo bez izvinjavanja, kupi tortu i pojedi deo pred kasirkom
+SHAME ATTACK vs EKSPERIMENT TOLERANCIJE — razlika je kljucna:
+
+SHAME ATTACK (za strah i stid):
+- Koristi SAMO kada je motivacija STRAH OD NEUSPEHA ili SRAMOTA/STID
+- Namerno uradi ono cega se klijent SRAMI u stvarnoj situaciji, svesno
+- Klijent ocekuje katastrofu — i vidi da katastrofa nije dosla
+- Primer: pojedi "zabranjeno" jelo u kafiću bez krivice, kupi tortu pred kasirkom i pojedi deo
+- NIJE shame attack: odlaganje obroka, pijenje vode, disanje — to je urge surfing
+- Pravi shame attack mora napadati STID direktno
+
+EKSPERIMENT TOLERANCIJE (za niska tolerancija frustracije — NTF):
+- Koristi kada je motivacija ZABAVA, UZIVANJE, OLAKSANJE, DOSADA
+- Ovo je Ellis-ov treci iracionalani "mus" — "svet MORA da mi bude lak i zabavan"
+- Klijent svesno bira alternativni izvor zadovoljstva/odmora iste veceri
+- Bezi da li mu je OK i bez hrane — da li MOZE da se odmori/zabavi drugacije
+- Cilj: klijent vidi da moze da podnese frustraciju i da nadje zadovoljstvo bez hrane
+- Primer: provedi vecer bez "nagrade" u hrani i zapisi kako si se osecao
 
 KADA KLIJENT POKLEKNE:
 - NE osudjuj, NE kazi "nista strasno" povrsno
