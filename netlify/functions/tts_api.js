@@ -26,7 +26,7 @@ exports.handler = async (event) => {
           },
           voice: {
             languageCode: 'sr-rs',
-            name: 'Aoede',
+            name: 'Charon',
             modelName: 'gemini-2.5-pro-tts'
           },
           audioConfig: {
