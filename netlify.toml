@@ -11,3 +11,8 @@
   from = "/api/tts"
   to = "/.netlify/functions/tts_api"
   status = 200
+
+[[redirects]]
+  from = "/api/gap"
+  to = "/.netlify/functions/gap_api"
+  status = 200
