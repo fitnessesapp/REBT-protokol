@@ -3,8 +3,8 @@ exports.handler = async (event) => {
     return { statusCode: 405, body: 'Method Not Allowed' };
   }
 
-  const GOOGLE_TTS_KEY = process.env.GOOGLE_TTS_API_KEY;
-  if (!GOOGLE_TTS_KEY) {
+  const API_KEY = process.env.GOOGLE_TTS_API_KEY;
+  if (!API_KEY) {
     return { statusCode: 500, body: JSON.stringify({ error: 'No TTS API key' }) };
   }
 
@@ -15,20 +15,23 @@ exports.handler = async (event) => {
     }
 
     const response = await fetch(
-      `https://texttospeech.googleapis.com/v1/text:synthesize?key=${GOOGLE_TTS_KEY}`,
+      `https://texttospeech.googleapis.com/v1beta1/text:synthesize?key=${API_KEY}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          input: { text: text.trim() },
+          input: {
+            text: text.trim(),
+            prompt: 'Calm, warm female psychotherapist. Slow and reassuring.'
+          },
           voice: {
-            languageCode: 'sr-RS',
-            name: 'sr-RS-Standard-A',  // jedini dostupan srpski glas
-            ssmlGender: 'FEMALE'
+            languageCode: 'sr-rs',
+            name: 'Aoede',
+            modelName: 'gemini-2.5-pro-tts'
           },
           audioConfig: {
             audioEncoding: 'MP3',
-            speakingRate: 0.92,
+            speakingRate: 0.95,
             pitch: 0
           }
         })
@@ -56,9 +59,6 @@ exports.handler = async (event) => {
     };
 
   } catch (err) {
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ error: err.message })
-    };
+    return { statusCode: 500, body: JSON.stringify({ error: err.message }) };
   }
 };
