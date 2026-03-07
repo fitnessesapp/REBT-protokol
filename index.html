@@ -268,35 +268,55 @@ function getAudioCtx(){
 function cleanText(text){
   return text.replace(/<[^>]*>/g,'').replace(/—/g,', ').replace(/→/g,' u ').replace(/„|“/g,'"').trim();
 }
+var _prefetchCache={};
+function prefetchSpeak(text){
+  if(!AUDIO)return;
+  var clean=cleanText(text);
+  if(!clean||_prefetchCache[clean])return;
+  var first=(clean.match(/[^.!?]+[.!?]*/)||[clean])[0].trim();
+  if(!first)return;
+  _prefetchCache[clean]='loading';
+  fetch('/api/tts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:first})})
+    .then(function(r){return r.arrayBuffer();})
+    .then(function(buf){
+      var ctx=getAudioCtx();
+      ctx.decodeAudioData(buf,function(decoded){_prefetchCache[clean]=decoded;},function(){delete _prefetchCache[clean];});
+    }).catch(function(){delete _prefetchCache[clean];});
+}
 function speak(text){
   if(!AUDIO)return;
   stopAudio();
   var clean=cleanText(text);
   if(!clean)return;
-  // Only send first sentence for faster response
   var first=(clean.match(/[^.!?]+[.!?]*/)||[clean])[0].trim();
   if(!first)return;
-  audioPlaying=true;
-  updateSI(true);
-  fetch('/api/tts',{
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({text:first})
-  }).then(function(resp){
-    if(!resp.ok)throw new Error('TTS '+resp.status);
-    return resp.arrayBuffer();
-  }).then(function(buf){
-    if(!audioPlaying)return;
+  var cached=_prefetchCache[clean];
+  if(cached&&cached!=='loading'){
+    audioPlaying=true;updateSI(true);
     var ctx=getAudioCtx();
-    ctx.decodeAudioData(buf,function(decoded){
+    var src=ctx.createBufferSource();
+    src.buffer=cached;src.connect(ctx.destination);
+    _currentSource=src;
+    src.onended=function(){audioPlaying=false;updateSI(false);};
+    src.start(0);
+    delete _prefetchCache[clean];
+    return;
+  }
+  audioPlaying=true;updateSI(true);
+  fetch('/api/tts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:first})})
+    .then(function(resp){if(!resp.ok)throw new Error('TTS '+resp.status);return resp.arrayBuffer();})
+    .then(function(buf){
       if(!audioPlaying)return;
-      var src=ctx.createBufferSource();
-      src.buffer=decoded;src.connect(ctx.destination);
-      _currentSource=src;
-      src.onended=function(){audioPlaying=false;updateSI(false);};
-      src.start(0);
-    },function(){audioPlaying=false;updateSI(false);});
-  }).catch(function(){audioPlaying=false;updateSI(false);});
+      var ctx=getAudioCtx();
+      ctx.decodeAudioData(buf,function(decoded){
+        if(!audioPlaying)return;
+        var src=ctx.createBufferSource();
+        src.buffer=decoded;src.connect(ctx.destination);
+        _currentSource=src;
+        src.onended=function(){audioPlaying=false;updateSI(false);};
+        src.start(0);
+      },function(){audioPlaying=false;updateSI(false);});
+    }).catch(function(){audioPlaying=false;updateSI(false);});
 }
 
 function stopAudio(){
@@ -440,7 +460,7 @@ function renderA(){
   inner.appendChild(h('p','therapist',q));speak(q);
   inner.appendChild(h('p','hint','Npr: "Kasno je, sedim sam, vidim cokoladu u frizideru." ili "Pogledao/la sam se u ogledalo pre izlaska." ili "Trebalo je da pocnem zadatak i nisam."<br><br>'));
   var nb=h('button','bp','Dalje');nb.disabled=!S.a;
-  var t=makeTa('Sta se desilo...',S.a,function(v){S.a=v;nb.disabled=!v});
+  var t=makeTa('Sta se desilo...',S.a,function(v){S.a=v;nb.disabled=!v;if(v.length>3)prefetchSpeak('Kad se to desilo, sta si rekao sebi? Koji glas se javio?');});
   inner.appendChild(t.wrap);nb.onclick=function(){renderB()};inner.appendChild(nb);
   s.appendChild(inner);root.appendChild(s);t.ta.focus();
 }
@@ -453,7 +473,7 @@ function renderB(){
   var q='Kad se to desilo, sta si rekao sebi? Koji glas se javio?';
   inner.appendChild(h('p','therapist',q));speak(q);
   var nb=h('button','bp','Dalje');nb.disabled=!S.b;
-  var t=makeTa('Sta ti kazes sebi...',S.b,function(v){S.b=v;nb.disabled=!v});
+  var t=makeTa('Sta ti kazes sebi...',S.b,function(v){S.b=v;nb.disabled=!v;if(v.length>3)prefetchSpeak('Kako se osecas kad ti to prodje kroz glavu? Sta osetis u telu?');});
   inner.appendChild(t.wrap);nb.onclick=function(){renderC()};
   var bb=h('button','bs','Nazad');bb.onclick=function(){renderA()};
   inner.appendChild(nb);inner.appendChild(bb);s.appendChild(inner);root.appendChild(s);t.ta.focus();
