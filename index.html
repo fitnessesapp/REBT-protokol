@@ -60,7 +60,7 @@ textarea{font-family:'DM Sans',sans-serif;outline:none;resize:none;-webkit-appea
 .speaking-indicator{display:inline-block;font-size:10px;color:#fff;margin-left:8px;animation:speakPulse 1s infinite}
 
 /* --- TYPOGRAPHY --- */
-.label{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#48CAC1;margin-bottom:14px;font-weight:600}
+.label{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,0.9);margin-bottom:14px;font-weight:600}
 .ldim{font-size:12px;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,0.75);margin-bottom:10px}
 .t1{font-family:'Instrument Serif',Georgia,serif;font-size:32px;font-weight:400;line-height:1.2;color:#fff}
 .t2{font-family:'Instrument Serif',Georgia,serif;font-size:24px;font-weight:400;line-height:1.35;margin-bottom:8px;color:#fff}
@@ -198,6 +198,35 @@ textarea{font-family:'DM Sans',sans-serif;outline:none;resize:none;-webkit-appea
 .dash-stat-val.warn{color:#C8A040}
 .spark{display:flex;align-items:flex-end;gap:3px;height:40px;margin-top:10px}
 .spark-bar{flex:1;border-radius:3px 3px 0 0;min-width:8px;transition:all 0.3s}
+
+/* --- NESSA CHAT BUBBLES --- */
+@keyframes typingBounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-7px)}}
+@keyframes bubblePop{from{opacity:0;transform:translateY(6px) scale(0.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+
+.nessa-row{display:flex;align-items:flex-end;gap:10px;margin-bottom:18px;animation:bubblePop 0.35s ease}
+.nessa-av{width:36px;height:36px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid rgba(255,255,255,0.35);background:#fff}
+.nessa-bubble{
+  background:rgba(255,255,255,0.18);
+  border:1px solid rgba(255,255,255,0.28);
+  border-radius:18px 18px 18px 4px;
+  padding:14px 18px;
+  max-width:calc(100% - 52px);
+  font-family:'Instrument Serif',Georgia,serif;
+  font-size:17px;color:#fff;line-height:1.6;font-style:italic;
+}
+.nessa-bubble.small{font-family:'DM Sans',sans-serif;font-size:14px;font-style:normal}
+.nessa-name{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.5);font-weight:600;margin-bottom:4px;margin-left:46px;font-family:'DM Sans',sans-serif}
+
+.typing-row{display:flex;align-items:flex-end;gap:10px;margin-bottom:18px}
+.typing-bubble{background:rgba(255,255,255,0.18);border:1px solid rgba(255,255,255,0.28);border-radius:18px 18px 18px 4px;padding:14px 16px;display:flex;gap:5px;align-items:center}
+.tdot{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,0.7);animation:typingBounce 1.1s ease-in-out infinite}
+.tdot:nth-child(2){animation-delay:0.18s}
+.tdot:nth-child(3){animation-delay:0.36s}
+
+/* Home Nessa intro */
+.home-nessa{display:flex;flex-direction:column;align-items:center;margin-bottom:28px}
+.home-av{width:72px;height:72px;border-radius:50%;object-fit:cover;border:3px solid rgba(255,255,255,0.4);box-shadow:0 4px 24px rgba(0,0,0,0.2);margin-bottom:10px}
+.home-av-name{font-size:12px;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,0.7);font-weight:600}
 </style>
 </head>
 <body>
@@ -231,14 +260,14 @@ function renderDashboard(inner,hi){
   var saPct=saTotal?Math.round(saDone/saTotal*100):null;
 
   var html='<div class="dash-title">Pregled napretka</div>';
-  html+='<div class="dash-stat"><span class="dash-stat-label">Prosečno smanjenje zudnje</span><span class="dash-stat-val '+(avgDelta>0?'good':'')+'">'+( avgDelta>0?'−':'')+Math.abs(avgDelta)+'</span></div>';
+  html+='<div class="dash-stat"><span class="dash-stat-label">Prosečno smanjenje žudnje</span><span class="dash-stat-val '+(avgDelta>0?'good':'')+'">'+( avgDelta>0?'−':'')+Math.abs(avgDelta)+'</span></div>';
   html+='<div class="dash-stat"><span class="dash-stat-label">Uzastopne sesije s padom</span><span class="dash-stat-val '+(streak>=3?'good':streak>=1?'':'warn')+'">'+streak+'</span></div>';
   if(saPct!==null)html+='<div class="dash-stat"><span class="dash-stat-label">Eksperimenti završeni</span><span class="dash-stat-val '+(saPct>=50?'good':'warn')+'">'+saDone+'/'+saTotal+' ('+saPct+'%)</span></div>';
   html+='<div class="dash-stat"><span class="dash-stat-label">Ukupno sesija</span><span class="dash-stat-val">'+hi.length+'</span></div>';
 
   // Sparkline — sve sesije
   var sparkMax=Math.max.apply(null,deltas.map(Math.abs))||1;
-  html+='<div style="font-size:11px;color:rgba(26,26,46,0.4);margin-top:12px;margin-bottom:6px">Pad zudnje po sesiji (najnovije desno)</div>';
+  html+='<div style="font-size:11px;color:rgba(26,26,46,0.4);margin-top:12px;margin-bottom:6px">Pad žudnje po sesiji (najnovije desno)</div>';
   html+='<div class="spark">';
   var sparkData=hi.slice().reverse().slice(-20); // max 20 bars
   sparkData.forEach(function(ses){
@@ -268,55 +297,78 @@ function getAudioCtx(){
 function cleanText(text){
   return text.replace(/<[^>]*>/g,'').replace(/—/g,', ').replace(/→/g,' u ').replace(/„|“/g,'"').trim();
 }
-var _prefetchCache={};
-function prefetchSpeak(text){
-  if(!AUDIO)return;
-  var clean=cleanText(text);
-  if(!clean||_prefetchCache[clean])return;
-  var first=(clean.match(/[^.!?]+[.!?]*/)||[clean])[0].trim();
-  if(!first)return;
-  _prefetchCache[clean]='loading';
-  fetch('/api/tts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:first})})
-    .then(function(r){return r.arrayBuffer();})
-    .then(function(buf){
-      var ctx=getAudioCtx();
-      ctx.decodeAudioData(buf,function(decoded){_prefetchCache[clean]=decoded;},function(){delete _prefetchCache[clean];});
-    }).catch(function(){delete _prefetchCache[clean];});
+function splitSentences(text){
+  // split on sentence endings, keep chunk under 200 chars
+  var parts=text.match(/[^.!?]+[.!?\s]*|[^.!?]+$/g)||[text];
+  var chunks=[],cur='';
+  parts.forEach(function(p){
+    if((cur+p).length>200&&cur){chunks.push(cur.trim());cur=p;}
+    else cur+=p;
+  });
+  if(cur.trim())chunks.push(cur.trim());
+  return chunks.filter(Boolean);
 }
+
+async function fetchTTSAudio(text){
+  var resp=await fetch('/api/tts',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({text:text})
+  });
+  if(!resp.ok)throw new Error('TTS HTTP '+resp.status);
+  var arrayBuf=await resp.arrayBuffer();
+  return arrayBuf;
+}
+
 function speak(text){
   if(!AUDIO)return;
   stopAudio();
   var clean=cleanText(text);
   if(!clean)return;
-  var first=(clean.match(/[^.!?]+[.!?]*/)||[clean])[0].trim();
-  if(!first)return;
-  var cached=_prefetchCache[clean];
-  if(cached&&cached!=='loading'){
-    audioPlaying=true;updateSI(true);
-    var ctx=getAudioCtx();
-    var src=ctx.createBufferSource();
-    src.buffer=cached;src.connect(ctx.destination);
-    _currentSource=src;
-    src.onended=function(){audioPlaying=false;updateSI(false);};
-    src.start(0);
-    delete _prefetchCache[clean];
-    return;
+  var sentences=splitSentences(clean);
+  if(!sentences.length)return;
+  audioQueue=sentences.slice();
+  audioPlaying=true;
+  updateSI(true);
+  // prefetch first two
+  var prefetched={};
+  function prefetch(idx){
+    if(idx<audioQueue.length&&!prefetched[idx]){
+      prefetched[idx]='loading';
+      fetchTTSAudio(audioQueue[idx]).then(function(buf){
+        prefetched[idx]=buf;
+      }).catch(function(){prefetched[idx]='error';});
+    }
   }
-  audioPlaying=true;updateSI(true);
-  fetch('/api/tts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:first})})
-    .then(function(resp){if(!resp.ok)throw new Error('TTS '+resp.status);return resp.arrayBuffer();})
-    .then(function(buf){
-      if(!audioPlaying)return;
-      var ctx=getAudioCtx();
-      ctx.decodeAudioData(buf,function(decoded){
-        if(!audioPlaying)return;
-        var src=ctx.createBufferSource();
-        src.buffer=decoded;src.connect(ctx.destination);
-        _currentSource=src;
-        src.onended=function(){audioPlaying=false;updateSI(false);};
-        src.start(0);
-      },function(){audioPlaying=false;updateSI(false);});
-    }).catch(function(){audioPlaying=false;updateSI(false);});
+  prefetch(0);prefetch(1);
+
+  var idx=0;
+  function playIdx(){
+    if(!audioPlaying||idx>=audioQueue.length){
+      audioPlaying=false;updateSI(false);return;
+    }
+    prefetch(idx+2); // prefetch ahead
+    function waitAndPlay(){
+      if(prefetched[idx]instanceof ArrayBuffer){
+        var ctx=getAudioCtx();
+        ctx.decodeAudioData(prefetched[idx].slice(0),function(decoded){
+          if(!audioPlaying)return;
+          var src=ctx.createBufferSource();
+          src.buffer=decoded;
+          src.connect(ctx.destination);
+          _currentSource=src;
+          src.onended=function(){idx++;setTimeout(playIdx,60);};
+          src.start(0);
+        },function(){idx++;playIdx();});
+      } else if(prefetched[idx]==='error'){
+        idx++;playIdx();
+      } else {
+        setTimeout(waitAndPlay,50); // still loading
+      }
+    }
+    waitAndPlay();
+  }
+  playIdx();
 }
 
 function stopAudio(){
@@ -384,21 +436,21 @@ async function generatePersonalized(){
     'C (Sta radi ili sta izbegava): "'+S.c_do+'"\n\n'+
     'Generisi personalizovane terapeutske odgovore u JSON formatu:\n'+
     '{\n'+
-    '  "d_logic_q": "Logicko pitanje za OVO KONKRETNO uverenje. STROGO JEDNO PITANJE — jedna recenica, jedna vrednost DA/NE. DA i NE moraju imati jasno suprotno znacenje. Ne kombinuj dva pitanja.",\n'+
+    '  "d_logic_q": "Logicko pitanje za OVO KONKRETNO uverenje. STROGO JEDNO PITANJE — jedna recenica, jedna vrednost DA/NE. DA i NE moraju imati jasno suprotno značeje. Ne kombinuj dva pitanja.",\n'+
     '  "d_logic_yes": "Odgovor ako klijent kaze DA na logicko pitanje (2-3 recenice, koristi klijentove reci iz B)",\n'+
     '  "d_logic_no": "Odgovor ako kaze NE (1-2 recenice, potvrdi i produbi uvid)",\n'+
     '  "d_empir_q": "Empirijsko pitanje koje trazi KONKRETNE dokaze za OVO uverenje. STROGO JEDNO PITANJE — jedna recenica, jedna vrednost DA/NE. DA znaci: imam dokaze, NE znaci: nemam dokaze. Ne kombinuj dva pitanja.",\n'+
     '  "d_empir_yes": "Odgovor ako DA (2-3 recenice)",\n'+
     '  "d_empir_no": "Odgovor ako NE (1-2 recenice)",\n'+
-    '  "d_func_q": "Funkcionalno pitanje koje se referise na klijentove KONKRETNE emocije i ponasanja iz C. STROGO JEDNO PITANJE — jedna recenica, jedna vrednost DA/NE. DA i NE moraju imati jasno suprotno znacenje. Ne kombinuj dva pitanja.",\n'+
+    '  "d_func_q": "Funkcionalno pitanje koje se referise na klijentove KONKRETNE emocije i ponasanja iz C. STROGO JEDNO PITANJE — jedna recenica, jedna vrednost DA/NE. DA i NE moraju imati jasno suprotno značeje. Ne kombinuj dva pitanja.",\n'+
     '  "d_func_yes": "Odgovor ako DA — citiraj klijentove reci iz C da pokaze kontradikciju (2-3 recenice)",\n'+
     '  "d_func_no": "Odgovor ako NE (1-2 recenice)",\n'+
-    '  "e_new_belief": "Novo racionalno uverenje — DIREKTNO preformulisi klijentovo uverenje iz B. Koristi klijentove tacne reci. Fleksibilna zelja umesto zahteva. MAKSIMALNO 2 kratke recenice.",\n'+
+    '  "e_new_belief": "Novo racionalno uverenje — DIREKTNO preformulisi klijentovo uverenje iz B. Koristi klijentove tačne reci. Fleksibilna zelja umešto zahteva. MAKSIMALNO 2 kratke recenice.",\n'+
     '  "shame_type": "ntf ako je motivacija zabava/olaksanje/dosada/uzivanje. attack ako je motivacija strah od neuspeha ili stid/sramota. Samo jedna vrednost: ntf ili attack.",\n'+
     '  "shame_task": "DVA tipa na osnovu shame_type: (1) ntf — EKSPERIMENT TOLERANCIJE: klijent svesno bira alternativni izvor zadovoljstva iste veceri bez hrane, i belezi kako se osecao. (2) attack — pravi SHAME ATTACK koji napada strah/stid direktno. Konkretan, izvodljiv danas/sutra. 2-3 recenice.",\n'+
-    '  "rei_scene": "NEGATIVNI REI scenario. Klijent zamislija kako POPUSTA i kako se oseca POSLE: krivica, stid, osecaj poraza. Koristi A situaciju i C_do ponasanje. NE opisuj pozitivnu alternativu. 1-2 recenice.",\n'+
-    '  "rei_step2": "REI korak 2 — ZAMENA EMOCIJE po Ellis metodi. Klijent zadrzava ISTI negativni scenario ali menja TIP emocije iz iracionalne u odgovarajucu. Napisi instrukciju sa klijentovim tacnim emocijama iz C: Zadrzi taj isti scenario. Umesto [C emocija], pusti da bude [racionalna alternativa]. 1-2 recenice."\n'+
-    '}\n\nVAZNO: Odgovori SAMO JSON. Bez teksta pre ili posle. Bez backtick-a. Koristi klijentove tacne reci gde god mozes.';
+    '  "rei_scene": "NEGATIVNI REI scenario. Klijent zamislija kako POPUSTA i kako se oseca POSLE: krivica, stid, osećaj poraza. Koristi A situaciju i C_do ponasanje. NE opisuj pozitivnu alternativu. 1-2 recenice.",\n'+
+    '  "rei_step2": "REI korak 2 — ZAMENA EMOCIJE po Ellis metodi. Klijent zadrzava ISTI negativni scenario ali menja TIP emocije iz iracionalne u odgovarajucu. Napisi instrukciju sa klijentovim tačnim emocijama iz C: Zadrzi taj isti scenario. Umešto [C emocija], pusti da bude [racionalna alternativa]. 1-2 recenice."\n'+
+    '}\n\nVAZNO: Odgovori SAMO JSON. Bez teksta pre ili posle. Bez backtick-a. Koristi klijentove tačne reci gde god mozes.';
   return await callAI(prompt);
 }
 
@@ -413,6 +465,36 @@ function makeTopbar(container){
   right.appendChild(si);right.appendChild(ab);tb.appendChild(hb);tb.appendChild(right);
   container.insertBefore(tb,container.firstChild);
 }
+/* --- NESSA CHAT HELPER --- */
+var NESSA_AV='nessa_avatar.svg';
+function nesAvEl(){var i=document.createElement('img');i.className='nessa-av';i.src=NESSA_AV;i.alt='Nessa';return i}
+
+function showNessaMsg(container, html, opts){
+  // opts: {delay, small, speak: bool, after}
+  opts=opts||{};
+  var delay=opts.delay!=null?opts.delay:1100;
+  var doSpeak=opts.speak!==false;
+
+  // typing row
+  var tr=document.createElement('div');tr.className='typing-row';
+  tr.appendChild(nesAvEl());
+  var tb=document.createElement('div');tb.className='typing-bubble';
+  for(var i=0;i<3;i++){var d=document.createElement('div');d.className='tdot';tb.appendChild(d);}
+  tr.appendChild(tb);container.appendChild(tr);
+
+  setTimeout(function(){
+    if(tr.parentNode)tr.parentNode.removeChild(tr);
+    var name=document.createElement('div');name.className='nessa-name';name.textContent='Nessa';
+    container.appendChild(name);
+    var row=document.createElement('div');row.className='nessa-row';
+    row.appendChild(nesAvEl());
+    var bub=document.createElement('div');bub.className='nessa-bubble'+(opts.small?' small':'');
+    bub.innerHTML=html;row.appendChild(bub);container.appendChild(row);
+    if(doSpeak){speak(html.replace(/<[^>]*>/g,''));}
+    if(opts.after)opts.after();
+  },delay);
+}
+
 function makeTa(placeholder,value,onInput){
   var ta=h('textarea','ta');ta.placeholder=placeholder;ta.value=value||'';
   ta.oninput=function(){onInput(ta.value.trim())};
@@ -436,15 +518,37 @@ function completeSA(idx,actual){var hi=loadHist();if(hi[idx]){hi[idx].actual=act
 function renderHome(){
   stopAudio();root.innerHTML='';var s=h('div','sc fi');
   var hi=loadHist(),pending=getPending(),count=hi.length;
-  s.innerHTML='<div style="margin-bottom:44px"><div class="ldim">REBT Protocol</div>'+
-    '<h1 class="t1">Preispitaj uverenje.</h1>'+
-    '<p class="hint" style="margin-top:14px;max-width:270px">AI terapeut koji te vodi kroz ABCDE proces za bilo koji izvor negativnih emocija. Personalizovano, ne genericno.</p>'+
-    (count?'<p style="margin-top:12px"><span style="display:inline-block;background:rgba(255,255,255,0.2);color:#fff;font-size:11px;padding:5px 14px;border-radius:20px;font-weight:600">'+count+' sesija</span></p>':'')+
-    '</div>';
-  if(pending){var pb=h('button','');
-    pb.className='shame-pending-card';
+
+  // Nessa avatar + name
+  var hn=h('div','home-nessa');
+  var hav=document.createElement('img');hav.className='home-av';hav.src=NESSA_AV;hav.alt='Nessa';
+  hn.appendChild(hav);
+  hn.appendChild(h('div','home-av-name','Nessa'));
+  s.appendChild(hn);
+
+  // Greeting bubble (typing → message)
+  var greetWrap=h('div','');greetWrap.style.cssText='width:100%;max-width:340px;margin-bottom:28px';
+  s.appendChild(greetWrap);
+
+  var greeting=pending
+    ? 'Čekam te. Jesi li uradio eksperiment?'
+    : 'Zdravo, ja sam Nessa. Šta te muči danas?';
+
+  showNessaMsg(greetWrap, greeting, {delay:600, speak:true});
+
+  if(count){
+    var cntBadge=h('div','');cntBadge.style.cssText='margin-bottom:16px';
+    cntBadge.innerHTML='<span style="display:inline-block;background:rgba(255,255,255,0.2);color:#fff;font-size:11px;padding:5px 14px;border-radius:20px;font-weight:600">'+count+' sesija</span>';
+    setTimeout(function(){s.insertBefore(cntBadge,s.children[s.children.length-1])},700);
+  }
+
+  if(pending){
+    var pb=h('button','shame-pending-card','');
     pb.innerHTML='<div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.6);margin-bottom:8px;font-weight:600">Shame attack čeka</div><div style="font-size:14px;color:#fff;line-height:1.5;font-weight:500">Jesi li uradio eksperiment?</div>';
-    pb.onclick=function(){renderReview(pending.idx,pending.s)};s.appendChild(pb)}
+    pb.onclick=function(){renderReview(pending.idx,pending.s)};
+    s.appendChild(pb);
+  }
+
   var btn=h('button','panic-btn','Pokreni');
   btn.onclick=function(){S={a:'',b:'',c_feel:'',c_do:'',d:[0,0,0],e_gen:'',rate1:0,bodyWhere:'',rate2:0,shame_task:'',shame_expect:'',reflections:[]};AI={};renderA()};
   s.appendChild(btn);
@@ -455,12 +559,12 @@ function renderHome(){
 function renderA(){
   root.innerHTML='';var s=h('div','sf');var inner=h('div','sfi fi');
   makeTopbar(inner);inner.appendChild(bar(0));
-  inner.appendChild(h('div','label','A \u2014 Aktivirajuci dogadjaj'));
-  var q='Sta se upravo desilo ili desava? Opisi situaciju samo cinjenicama.';
-  inner.appendChild(h('p','therapist',q));speak(q);
-  inner.appendChild(h('p','hint','Npr: "Kasno je, sedim sam, vidim cokoladu u frizideru." ili "Pogledao/la sam se u ogledalo pre izlaska." ili "Trebalo je da pocnem zadatak i nisam."<br><br>'));
+  inner.appendChild(h('div','label','A \u2014 Aktivirajući događaj'));
+  var q='Šta se upravo desilo ili dešava? Opiši situaciju samo činjenicama.';
+  showNessaMsg(inner, q, {delay:400});
+  inner.appendChild(h('p','hint','Npr: "Kasno je, sedim sam, vidim čokoladu u frižideru." ili "Pogledao/la sam se u ogledalo pre izlaska." ili "Trebalo je da počnem zadatak i nisam."<br><br>'));
   var nb=h('button','bp','Dalje');nb.disabled=!S.a;
-  var t=makeTa('Sta se desilo...',S.a,function(v){S.a=v;nb.disabled=!v;if(v.length>3)prefetchSpeak('Kad se to desilo, sta si rekao sebi? Koji glas se javio?');});
+  var t=makeTa('Šta se desilo...',S.a,function(v){S.a=v;nb.disabled=!v});
   inner.appendChild(t.wrap);nb.onclick=function(){renderB()};inner.appendChild(nb);
   s.appendChild(inner);root.appendChild(s);t.ta.focus();
 }
@@ -470,10 +574,10 @@ function renderB(){
   makeTopbar(inner);inner.appendChild(bar(1));
   inner.appendChild(h('div','label','B \u2014 Uverenje'));
   var ib=h('div','insight');ib.innerHTML='<div class="il">Situacija</div><div class="it">"'+esc(S.a)+'"</div>';inner.appendChild(ib);
-  var q='Kad se to desilo, sta si rekao sebi? Koji glas se javio?';
-  inner.appendChild(h('p','therapist',q));speak(q);
+  var q='Kad se to desilo, šta si rekao sebi? Koji glas se javio?';
+  showNessaMsg(inner, q, {delay:400});
   var nb=h('button','bp','Dalje');nb.disabled=!S.b;
-  var t=makeTa('Sta ti kazes sebi...',S.b,function(v){S.b=v;nb.disabled=!v;if(v.length>3)prefetchSpeak('Kako se osecas kad ti to prodje kroz glavu? Sta osetis u telu?');});
+  var t=makeTa('Šta ti kažeš sebi...',S.b,function(v){S.b=v;nb.disabled=!v});
   inner.appendChild(t.wrap);nb.onclick=function(){renderC()};
   var bb=h('button','bs','Nazad');bb.onclick=function(){renderA()};
   inner.appendChild(nb);inner.appendChild(bb);s.appendChild(inner);root.appendChild(s);t.ta.focus();
@@ -484,12 +588,13 @@ function renderC(){
   makeTopbar(inner);inner.appendChild(bar(2));
   inner.appendChild(h('div','label','C \u2014 Posledice'));
   var ib=h('div','insight');ib.innerHTML='<div class="il">Uverenje</div><div class="it">"'+esc(S.b)+'"</div>';inner.appendChild(ib);
-  var q1='Kako se osecas kad ti to prodje kroz glavu? Sta osetis u telu?';
-  inner.appendChild(h('p','therapist',q1));speak(q1);
+  var q1='Kako se osećaš kad ti to prođe kroz glavu? Šta osetiš u telu?';
+  showNessaMsg(inner, q1, {delay:400});
   var nb=h('button','bp','Dalje');function ck(){nb.disabled=!(S.c_feel&&S.c_do)}
   var t1=makeTa('Emocije i telesne senzacije...',S.c_feel,function(v){S.c_feel=v;ck()});inner.appendChild(t1.wrap);
-  inner.appendChild(h('p','therapist','Zbog ovog uverenja — sta radis, ili sta izbegavas?'));
-  var t2=makeTa('Sta radis ili sta izbegavas...',S.c_do,function(v){S.c_do=v;ck()});inner.appendChild(t2.wrap);
+  var q2='Zbog ovog uverenja — šta radiš, ili šta izbegavaš?';
+  showNessaMsg(inner, q2, {delay:1800, speak:false});
+  var t2=makeTa('Šta radiš ili šta izbegavaš...',S.c_do,function(v){S.c_do=v;ck()});inner.appendChild(t2.wrap);
   nb.disabled=!(S.c_feel&&S.c_do);
   nb.onclick=function(){renderLoading()};
   var bb=h('button','bs','Nazad');bb.onclick=function(){renderB()};
@@ -500,7 +605,7 @@ function renderLoading(){
   root.innerHTML='';
   var s=h('div','loading-screen fi');
   s.innerHTML='<div class="loading-orb"></div>'+
-    '<p class="therapist" style="margin-bottom:8px">Analiziram tvoje uverenje<span class="loading-text"></span></p>'+
+    '<p class="therapist" style="margin-bottom:8px">Nessa analizira tvoje uverenje<span class="loading-text"></span></p>'+
     '<p class="hint">Pripremam personalizovana pitanja i odgovore za tvoju situaciju.</p>';
   root.appendChild(s);
 
@@ -511,9 +616,9 @@ function renderLoading(){
       S.shame_task=data.shame_task||'';
       renderD();
     }else{
-      AI={d_logic_q:'Da li LOGICKI sledi da moras "'+S.b+'"?',d_logic_yes:'Razmisli — zelja i obaveza nisu isto.',d_logic_no:'Tacno. Zelja postoji, ali nije komanda.',
+      AI={d_logic_q:'Da li LOGICKI sledi da moras "'+S.b+'"?',d_logic_yes:'Razmisli — zelja i obaveza nisu isto.',d_logic_no:'Tačno. Zelja postoji, ali nije komanda.',
         d_empir_q:'Koji su dokazi da ne mozes da izdrzzis ovo?',d_empir_yes:'Ako si ikad izdrzao, imas dokaz.',d_empir_no:'Nema dokaza. Neprijatno nije nepodnosljivo.',
-        d_func_q:'Da li te ovo uverenje priblizava cilju?',d_func_yes:'Pogledaj C — da li to izgleda kao pomoc?',d_func_no:'Tacno. Ne sluzi ti.',
+        d_func_q:'Da li te ovo uverenje priblizava cilju?',d_func_yes:'Pogledaj C — da li to izgleda kao pomoc?',d_func_no:'Tačno. Ne sluzi ti.',
         e_new_belief:'Mogu da izaberem drugu reakciju na ovu situaciju.',shame_task:'Uradi mali eksperiment vezan za tvoju situaciju.',rei_scene:'Zamisli svoju situaciju.'};
       S.e_gen=AI.e_new_belief;S.shame_task=AI.shame_task;
       renderD();
@@ -525,11 +630,12 @@ function renderD(){
   root.innerHTML='';var s=h('div','sf');var inner=h('div','sfi fi');inner.style.justifyContent='flex-start';inner.style.paddingTop='0';
   makeTopbar(inner);inner.appendChild(bar(3));
   inner.appendChild(h('div','label','D \u2014 Osporavanje'));
-  var q='Hajde da testiramo to uverenje.';inner.appendChild(h('h2','t2',q));speak(q);
+  var q='Hajde da testiramo to uverenje.';
+  showNessaMsg(inner, q, {delay:300});
   inner.appendChild(makeWhy('Iracionalna uverenja opstaju jer ih nikad nismo direktno ispitali. Ova tri testa ih izlažu svetlosti — logičkom, empirijskom i praktičnom. Uverenje koje ne preživi nijedan od njih nema osnove da i dalje upravlja tvojim osećanjima.'));
   var ib=h('div','insight');ib.innerHTML='<div class="il">Pod lupom</div><div class="it">"'+esc(S.b)+'"</div>';inner.appendChild(ib);
   var cx=h('div','ctx');
-  cx.innerHTML='<div class="cl">Tvoje C</div><div class="cv"><strong>Osecanja:</strong> '+esc(S.c_feel)+'</div><div class="cv" style="margin-top:6px"><strong>Ponasanje:</strong> '+esc(S.c_do)+'</div>';
+  cx.innerHTML='<div class="cl">Tvoje C</div><div class="cv"><strong>Osećanja:</strong> '+esc(S.c_feel)+'</div><div class="cv" style="margin-top:6px"><strong>Ponasanje:</strong> '+esc(S.c_do)+'</div>';
   inner.appendChild(cx);
 
   var qs=[
@@ -563,7 +669,8 @@ function renderE(){
   root.innerHTML='';var s=h('div','sf');var inner=h('div','sfi fi');inner.style.justifyContent='flex-start';inner.style.paddingTop='0';
   makeTopbar(inner);inner.appendChild(bar(4));
   inner.appendChild(h('div','label','E \u2014 Novo uverenje'));
-  var q='Staro uverenje palo je na sva tri testa. Evo sta stavljamo umesto njega.';inner.appendChild(h('p','therapist',q));speak(q);
+  var q='Staro uverenje palo je na sva tri testa. Evo šta stavljamo umesto njega.';
+  showNessaMsg(inner, q, {delay:400});
   var ob=h('div','old-b');
   ob.innerHTML='<div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(200,80,80,0.5);margin-bottom:10px;font-weight:600">Staro</div><div style="font-family:Instrument Serif,Georgia,serif;font-size:17px;color:rgba(180,60,60,0.5);line-height:1.6;font-style:italic;text-decoration:line-through">"'+esc(S.b)+'"</div>';
   inner.appendChild(ob);
@@ -571,8 +678,8 @@ function renderE(){
   var nb2=h('div','new-b');
   nb2.innerHTML='<div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#48CAC1;margin-bottom:10px;font-weight:600">Novo</div><div style="font-family:Instrument Serif,Georgia,serif;font-size:17px;color:#1a1a2e;line-height:1.7;font-style:italic">"'+esc(S.e_gen)+'"</div>';
   inner.appendChild(nb2);
-  setTimeout(function(){speak(S.e_gen)},800);
-  inner.appendChild(h('p','hint','Prilagodi ako zelis. Ako odgovara, ostavi prazno.<br><br>'));
+  setTimeout(function(){speak(S.e_gen)},2200);
+  inner.appendChild(h('p','hint','Prilagodi ako želiš. Ako odgovara, ostavi prazno.<br><br>'));
   var t=makeTa('Tvoja verzija (opciono)...','',function(v){if(v)S.e_gen=v;else S.e_gen=AI.e_new_belief||''});
   t.ta.style.minHeight='70px';inner.appendChild(t.wrap);
   var nb=h('button','bg','Dalje \u2014 Telesni rad');nb.onclick=function(){renderBody1()};
@@ -584,9 +691,9 @@ function renderBody1(){
   root.innerHTML='';var s=h('div','sf');var inner=h('div','sfi fi');
   makeTopbar(inner);inner.appendChild(bar(5));
   inner.appendChild(h('div','label','Telo \u2014 Intenzitet'));
-  var q='Koliko je jak taj osecaj ili pritisak sad? Daj mu broj.';
-  inner.appendChild(h('p','therapist',q));speak(q);
-  inner.appendChild(makeWhy('Merimo intenzitet pre i posle — da bi tvoj nervni sistem video konkretan dokaz da talas osecaja zaista prolazi. Broj nije procena vrednosti, samo termometar.'));
+  var q='Koliko je jak taj osećaj ili pritisak sad? Daj mu broj.';
+  showNessaMsg(inner, q, {delay:400});
+  inner.appendChild(makeWhy('Merimo intenzitet pre i posle — da bi tvoj nervni sistem video konkretan dokaz da talas osećaja zaista prolazi. Broj nije procena vrednosti, samo termometar.'));
   var grid=h('div','rg');var nb=h('button','bp','Dalje');nb.disabled=true;
   for(var n=1;n<=10;n++){(function(n){var b=h('button','rb');b.textContent=n;
     b.onclick=function(){S.rate1=n;grid.querySelectorAll('.rb').forEach(function(x){x.className='rb';x.style.background=''});
@@ -599,7 +706,8 @@ function renderBody2(){
   root.innerHTML='';var s=h('div','sf');var inner=h('div','sfi fi');
   makeTopbar(inner);inner.appendChild(bar(5));
   inner.appendChild(h('div','label','Telo \u2014 Lokacija'));
-  var q='Gde u telu osetis taj osecaj?';inner.appendChild(h('p','therapist',q));speak(q);
+  var q='Gde u telu osetiš taj osećaj?';
+  showNessaMsg(inner, q, {delay:400});
   var areas=['Stomak \u2014 stezanje, praznina','Grudi \u2014 pritisak','Grlo \u2014 cvor, suva usta','Glava \u2014 misli jure','Vilica \u2014 stiskam zube','Ruke \u2014 nemir'];
   var nb=h('button','bp','Dalje \u2014 REI');nb.disabled=true;
   areas.forEach(function(a){var b=h('button','body-opt',a);
@@ -620,12 +728,12 @@ function renderREI(){
   var scene=AI.rei_scene||'Zamisli svoju situaciju.';
   var feelShort=S.c_feel.length>60?S.c_feel.substring(0,60)+'...':S.c_feel;
   var step2text=AI.rei_step2||
-    'Zadrži taj isti scenario u glavi. Sada aktivno promeni TIP emocije — umesto <em>"'+esc(feelShort)+'"</em>, pusti da bude nezadovoljstvo ili žaljenje. Isti dogadjaj, drugačija emocija.';
+    'Zadrži taj isti scenario u glavi. Sada aktivno promeni TIP emocije — umešto <em>"'+esc(feelShort)+'"</em>, pusti da bude nezadovoljstvo ili žaljenje. Isti dogadjaj, drugačija emocija.';
   var step2speak=AI.rei_step2_speak||
-    'Zadrzite taj isti scenario. Sada aktivno promenite tip emocije — umesto '+feelShort+', pustite da bude nezadovoljstvo ili zaljenje. Isti dogadjaj, drugacija emocija.';
+    'Zadrzite taj isti scenario. Sada aktivno promenite tip emocije — umešto '+feelShort+', pustite da bude nezadovoljstvo ili zaljenje. Isti dogadjaj, drugacija emocija.';
   var steps=[
-    {text:esc(scene)+' Pusti najgore osecanje. Oseti ga u '+bp+'. <strong>Ostani tu.</strong>',
-     speak:scene+' Pusti najgore osecanje. Oseti ga u '+bp+'. Ostani tu.',dur:25},
+    {text:esc(scene)+' Pusti najgore osećanje. Oseti ga u '+bp+'. <strong>Ostani tu.</strong>',
+     speak:scene+' Pusti najgore osećanje. Oseti ga u '+bp+'. Ostani tu.',dur:25},
     {text:step2text,
      speak:step2speak,dur:20},
     {text:'Izgovori naglas:<br><br><em>"'+esc(S.e_gen)+'"</em>',
@@ -662,7 +770,8 @@ function renderBody3(){
   root.innerHTML='';var s=h('div','sf');var inner=h('div','sfi fi');
   makeTopbar(inner);inner.appendChild(bar(6));
   inner.appendChild(h('div','label','Provera'));
-  var q='Kako je taj osecaj sad?';inner.appendChild(h('p','therapist',q));speak(q);
+  var q='Kako je taj osećaj sad?';
+  showNessaMsg(inner, q, {delay:400});
   inner.appendChild(h('p','hint','Bio/la je <strong>'+S.rate1+'/10</strong> pre REI.<br><br>'));
   var grid=h('div','rg');
   var delta=h('p','');delta.style.cssText='font-size:14px;margin:12px 0 20px;text-align:center;display:none';
@@ -670,7 +779,7 @@ function renderBody3(){
   for(var n=1;n<=10;n++){(function(n){var b=h('button','rb');b.textContent=n;
     b.onclick=function(){S.rate2=n;grid.querySelectorAll('.rb').forEach(function(x){x.className='rb';x.style.background=''});
     b.className='rb sel';b.style.background='#48CAC1';delta.style.display='block';
-    if(n<S.rate1){delta.textContent='Sa '+S.rate1+' na '+n+'. Osecaj prolazi.';delta.style.color='rgba(255,255,255,0.9)'}
+    if(n<S.rate1){delta.textContent='Sa '+S.rate1+' na '+n+'. Osećaj prolazi.';delta.style.color='rgba(255,255,255,0.9)'}
     else{delta.textContent=n===S.rate1?'Isto. Nekad treba vise vremena.':'Porasla. Nastavi.';delta.style.color='rgba(255,255,255,0.4)'}
     nb.disabled=false};grid.appendChild(b)})(n)}
   inner.appendChild(grid);inner.appendChild(delta);nb.onclick=function(){renderShame()};
@@ -684,24 +793,24 @@ function renderShame(){
   var screenLabel=isNTF?'Eksperiment tolerancije':'Shame Attack';
   inner.appendChild(h('div','label',screenLabel));
   var q='Ovo je rad u realnosti. Sve pre ovoga je bilo u glavi.';
-  inner.appendChild(h('p','therapist',q));speak(q);
+  showNessaMsg(inner, q, {delay:400});
   inner.appendChild(makeWhy(isNTF?'Tolerancija na frustraciju raste samo kroz direktno iskustvo — ne kroz razgovor o njoj. Svaki put kad prođeš veče bez "nagrade" u hrani i vidiš da si OK, tvoj mozak briše jednu od pogrešnih jednadžbi.':'Namerno radiš ono čega se stidiš — uz punu svest, u stvarnoj situaciji. Katastrofa koju očekuješ obično ne dolazi. Taj jaz između očekivanja i realnosti je ono što menja uverenje.'));
   var task=h('div','insight');task.innerHTML='<div class="il">Tvoj eksperiment</div><div class="it">'+esc(S.shame_task)+'</div>';inner.appendChild(task);
-  inner.appendChild(h('p','therapist','Pre nego sto to uradis \u2014 napisi sta OCEKUJES da ce se desiti.'));
-  var nb=h('button','bg','Zavrsi i sacuvaj');nb.disabled=!S.shame_expect;
-  var t=makeTa('Ocekujem da ce se desiti...',S.shame_expect,function(v){S.shame_expect=v;nb.disabled=!v});
+  showNessaMsg(inner, 'Pre nego što to uradiš — napiši šta OČEKUJEŠ da će se desiti.', {delay:1600, speak:false});
+  var nb=h('button','bg','Završi i sačuvaj');nb.disabled=!S.shame_expect;
+  var t=makeTa('Očekujem da ce se desiti...',S.shame_expect,function(v){S.shame_expect=v;nb.disabled=!v});
   inner.appendChild(t.wrap);nb.onclick=function(){saveSession();renderVictory()};
-  var bb=h('button','bs','Preskoci');bb.onclick=function(){S.shame_task='';S.shame_expect='';saveSession();renderVictory()};
+  var bb=h('button','bs','Preskoči');bb.onclick=function(){S.shame_task='';S.shame_expect='';saveSession();renderVictory()};
   inner.appendChild(nb);inner.appendChild(bb);s.appendChild(inner);root.appendChild(s);
 }
 
 function renderVictory(){
   root.innerHTML='';var s=h('div','sf');var inner=h('div','sfi fi');inner.style.justifyContent='flex-start';inner.style.paddingTop='32px';
-  speak('Sesija zavrsena. Intenzitet sa '+S.rate1+' na '+S.rate2+'.');
+  speak('Sesija završena. Intenzitet sa '+S.rate1+' na '+S.rate2+'.');
   inner.innerHTML+='<div style="text-align:center;margin-bottom:24px"><div style="width:60px;height:60px;border-radius:50%;background:rgba(126,184,168,0.1);display:inline-flex;align-items:center;justify-content:center;font-size:26px;color:#7EB8A8">&#10003;</div></div>'+
     '<h2 class="t2" style="text-align:center;color:#fff">Sesija završena.</h2>'+
     '<p style="text-align:center;margin-bottom:6px;color:rgba(255,255,255,0.85);font-size:14px">Intenzitet: '+S.rate1+' \u2192 '+S.rate2+'</p>'+
-    (S.shame_task?'<p class="hint" style="text-align:center;margin-bottom:24px">Ne zaboravi shame attack.</p>':'<p class="hint" style="text-align:center;margin-bottom:24px">Sacuvano.</p>');
+    (S.shame_task?'<p class="hint" style="text-align:center;margin-bottom:24px">Ne zaboravi shame attack.</p>':'<p class="hint" style="text-align:center;margin-bottom:24px">Sačuvano.</p>');
   var vOld=h('div','old-b');vOld.style.marginBottom='8px';
   vOld.innerHTML='<div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(180,60,60,0.5);margin-bottom:8px;font-weight:600">Staro uverenje</div><div style="font-family:Instrument Serif,Georgia,serif;font-size:15px;color:rgba(180,60,60,0.5);line-height:1.6;font-style:italic;text-decoration:line-through">„'+esc(S.b)+'“</div>';
   inner.appendChild(vOld);
@@ -719,7 +828,7 @@ function renderVictory(){
     });
     rCard.innerHTML=rHtml;inner.appendChild(rCard);
   }
-  var nb=h('button','bp','Pocetni ekran');nb.onclick=renderHome;inner.appendChild(nb);
+  var nb=h('button','bp','Početni ekran');nb.onclick=renderHome;inner.appendChild(nb);
   s.appendChild(inner);root.appendChild(s);
 }
 
@@ -727,14 +836,15 @@ function renderReview(idx,sess){
   root.innerHTML='';var s=h('div','sf');var inner=h('div','sfi fi');inner.style.justifyContent='flex-start';inner.style.paddingTop='0';
   makeTopbar(inner);
   inner.appendChild(h('div','label','Shame Attack \u2014 Rezultat'));
-  var q='Hajde da uporedimo ocekivanje i realnost.';inner.appendChild(h('p','therapist',q));speak(q);
+  var q='Hajde da uporedimo očekivanje i realnost.';
+  showNessaMsg(inner, q, {delay:400});
   var task=h('div','insight');task.innerHTML='<div class="il">Eksperiment</div><div class="it">'+esc(sess.shame)+'</div>';inner.appendChild(task);
   var exp=h('div','old-b');
-  exp.innerHTML='<div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(200,80,80,0.5);margin-bottom:10px;font-weight:600">Ocekivanje</div><div style="font-size:14px;color:rgba(26,26,46,0.6);line-height:1.6">'+esc(sess.expect)+'</div>';
+  exp.innerHTML='<div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(200,80,80,0.5);margin-bottom:10px;font-weight:600">Očekivanje</div><div style="font-size:14px;color:rgba(26,26,46,0.6);line-height:1.6">'+esc(sess.expect)+'</div>';
   inner.appendChild(exp);
-  inner.appendChild(h('p','therapist','Sta se ZAISTA desilo?'));
-  var nb=h('button','bg','Sacuvaj');nb.disabled=true;
-  var t=makeTa('Sta se zaista desilo...','',function(v){nb.disabled=!v});inner.appendChild(t.wrap);
+  showNessaMsg(inner, 'Šta se ZAISTA desilo?', {delay:1600, speak:false});
+  var nb=h('button','bg','Sačuvaj');nb.disabled=true;
+  var t=makeTa('Šta se zaista desilo...','',function(v){nb.disabled=!v});inner.appendChild(t.wrap);
   nb.onclick=async function(){
     var actual=t.ta.value.trim();if(!actual)return;
     nb.disabled=true;nb.textContent='Analiziram...';
@@ -742,22 +852,26 @@ function renderReview(idx,sess){
     inner.innerHTML='';
     inner.appendChild(h('div','label','Jaz'));
     // show cards immediately while AI loads
-    var e2=h('div','old-b');e2.innerHTML='<div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(200,100,100,0.5);margin-bottom:8px">Ocekivanje</div><div style="font-size:14px;color:rgba(180,60,60,0.4);line-height:1.6;text-decoration:line-through">'+esc(sess.expect)+'</div>';inner.appendChild(e2);
+    var e2=h('div','old-b');e2.innerHTML='<div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(200,100,100,0.5);margin-bottom:8px">Očekivanje</div><div style="font-size:14px;color:rgba(180,60,60,0.4);line-height:1.6;text-decoration:line-through">'+esc(sess.expect)+'</div>';inner.appendChild(e2);
     inner.appendChild(h('div','','<div style="text-align:center;font-size:18px;color:rgba(72,202,193,0.5);margin:8px 0">\u2193</div>'));
     var a2=h('div','new-b');a2.innerHTML='<div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#48CAC1;margin-bottom:8px;font-weight:600">Realnost</div><div style="font-size:14px;color:#1a1a2e;line-height:1.6">'+esc(actual)+'</div>';inner.appendChild(a2);
-    // AI analysis placeholder
-    var aiBox=h('p','therapist','...');aiBox.style.minHeight='60px';inner.appendChild(aiBox);
-    var hb=h('button','bp','Pocetni ekran');hb.onclick=renderHome;inner.appendChild(hb);
+    // Nessa analysis bubble placeholder
+    var aiName=h('div','nessa-name');aiName.textContent='Nessa';inner.appendChild(aiName);
+    var aiRow=h('div','nessa-row');
+    var aiAv=document.createElement('img');aiAv.className='nessa-av';aiAv.src=NESSA_AV;aiAv.alt='Nessa';
+    var aiBub=h('div','nessa-bubble small');aiBub.textContent='...';aiBub.style.minHeight='50px';
+    aiRow.appendChild(aiAv);aiRow.appendChild(aiBub);inner.appendChild(aiRow);
+    var hb=h('button','bp','Početni ekran');hb.onclick=renderHome;inner.appendChild(hb);
     // fetch AI analysis
     try{
       var resp=await fetch('/api/gap',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({b:sess.b||S.b,expect:sess.expect,actual:actual})});
       var data=await resp.json();
       var analysis=data.analysis||'Svaki put kad vidiš ovaj jaz, tvoj mozak uči da katastrofa nije došla — i sledeći put strah je manji.';
-      aiBox.textContent=analysis;
+      aiBub.textContent=analysis;
       speak(analysis);
     }catch(e){
-      var fallback='Pogledaj razliku. Ovaj jaz je dokaz tvom nervnom sistemu.';
-      aiBox.textContent=fallback;speak(fallback);
+      aiBub.textContent='Pogledaj razliku. Ovaj jaz je dokaz tvom nervnom sistemu.';
+      speak('Pogledaj razliku. Ovaj jaz je dokaz tvom nervnom sistemu.');
     }
   };
   inner.appendChild(nb);var bb=h('button','bs','Nazad');bb.onclick=renderHome;inner.appendChild(bb);
@@ -822,12 +936,12 @@ function renderSessionDetail(ses,idx){
     :'');
   inner.appendChild(bel);
 
-  // Skala zudnje
+  // Skala žudnje
   var scale=h('div','insight');
   var diff=ses.r2-ses.r1;
   var diffTxt=diff<0?'↓ '+Math.abs(diff)+' manje':diff===0?'Isto':'↑ '+diff+' vise';
   var diffCol=diff<0?'#48CAC1':diff===0?'rgba(26,26,46,0.4)':'rgba(200,80,80,0.6)';
-  scale.innerHTML='<div class="il">Intenzitet zudnje</div>'+
+  scale.innerHTML='<div class="il">Intenzitet žudnje</div>'+
     '<div style="display:flex;align-items:center;gap:16px;margin-top:4px">'+
       '<div style="text-align:center"><div style="font-size:28px;font-weight:700;color:#1a1a2e">'+ses.r1+'</div><div style="font-size:11px;color:rgba(26,26,46,0.4)">Pre</div></div>'+
       '<div style="font-size:20px;color:rgba(26,26,46,0.2)">→</div>'+
@@ -841,7 +955,7 @@ function renderSessionDetail(ses,idx){
     var sa=h('div','insight');
     sa.innerHTML='<div class="il">Shame Attack</div>'+
       '<div class="it" style="margin-bottom:10px">'+esc(ses.shame)+'</div>'+
-      (ses.expect?'<div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(26,26,46,0.35);margin-bottom:4px;margin-top:10px;font-weight:600">Ocekivanje</div>'+
+      (ses.expect?'<div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(26,26,46,0.35);margin-bottom:4px;margin-top:10px;font-weight:600">Očekivanje</div>'+
         '<div style="font-size:13px;color:rgba(26,26,46,0.5);line-height:1.5;font-style:italic">„'+esc(ses.expect)+'“</div>':'')+
       (ses.actual?'<div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#48CAC1;margin-bottom:4px;margin-top:12px;font-weight:600">Realnost</div>'+
         '<div style="font-size:13px;color:#1a1a2e;line-height:1.5;font-weight:500">„'+esc(ses.actual)+'“</div>':
