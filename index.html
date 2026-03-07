@@ -43,22 +43,20 @@ textarea{font-family:'DM Sans',sans-serif;outline:none;resize:none;-webkit-appea
 
 /* --- TOPBAR (header style matching Fitnesses) --- */
 .topbar{
-  background:rgba(72,202,193,0.9);
-  backdrop-filter:blur(12px);
-  -webkit-backdrop-filter:blur(12px);
+  background:transparent;
   display:flex;justify-content:space-between;align-items:center;
   padding:14px 20px;margin-bottom:0;
 }
 .home-btn{
-  background:rgba(255,255,255,0.25);border:none;border-radius:50%;
-  width:38px;height:38px;display:flex;align-items:center;justify-content:center;
+  background:rgba(0,0,0,0.15);border:none;border-radius:50%;
+  width:36px;height:36px;display:flex;align-items:center;justify-content:center;
   color:#fff;font-size:20px;font-weight:300;
 }
 .audio-tog{
-  background:rgba(255,255,255,0.2);border:1.5px solid rgba(255,255,255,0.5);
-  border-radius:20px;padding:6px 14px;font-size:11px;color:#fff;letter-spacing:1px;transition:all 0.2s;
+  background:rgba(0,0,0,0.15);border:1px solid rgba(255,255,255,0.3);
+  border-radius:20px;padding:5px 12px;font-size:11px;color:rgba(255,255,255,0.7);letter-spacing:1px;transition:all 0.2s;
 }
-.audio-tog.on{background:rgba(255,255,255,0.35);border-color:#fff}
+.audio-tog.on{background:rgba(255,255,255,0.2);border-color:rgba(255,255,255,0.6);color:#fff}
 .speaking-indicator{display:inline-block;font-size:10px;color:#fff;margin-left:8px;animation:speakPulse 1s infinite}
 
 /* --- TYPOGRAPHY --- */
@@ -70,8 +68,8 @@ textarea{font-family:'DM Sans',sans-serif;outline:none;resize:none;-webkit-appea
 .therapist{font-family:'Instrument Serif',Georgia,serif;font-size:19px;color:#fff;line-height:1.6;font-style:italic;margin-bottom:20px}
 
 /* --- STEP BAR --- */
-.step-bar{display:flex;gap:4px;justify-content:center;margin-bottom:20px}
-.step-seg{height:3px;border-radius:2px;transition:all 0.5s ease}
+.step-bar{display:flex;gap:6px;justify-content:center;margin-bottom:20px;align-items:center}
+.step-seg{border-radius:50%;transition:all 0.4s ease}
 
 /* --- HOME BUTTON --- */
 .panic-btn{
@@ -183,40 +181,174 @@ textarea{font-family:'DM Sans',sans-serif;outline:none;resize:none;-webkit-appea
   background:rgba(255,255,255,0.15);border:1.5px solid rgba(255,255,255,0.3);
   border-radius:16px;padding:18px 20px;width:100%;text-align:left;margin-bottom:20px;color:#fff;
 }
+
+/* --- ZASTO OVO --- */
+.why-toggle{font-size:11px;color:rgba(255,255,255,0.5);cursor:pointer;text-decoration:underline;text-underline-offset:3px;display:block;text-align:center;margin-bottom:16px;background:none;border:none;padding:0}
+.why-toggle:hover{color:rgba(255,255,255,0.8)}
+.why-box{background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:12px;padding:14px 16px;margin-bottom:16px;display:none}
+.why-box p{font-size:13px;color:rgba(255,255,255,0.85);line-height:1.7;font-style:italic}
+
+/* --- DASHBOARD --- */
+.dash-card{background:#fff;border-radius:16px;padding:18px 20px;margin-bottom:14px;box-shadow:0 4px 20px rgba(0,0,0,0.1)}
+.dash-title{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#48CAC1;margin-bottom:14px;font-weight:600}
+.dash-stat{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.dash-stat-label{font-size:12px;color:rgba(26,26,46,0.5)}
+.dash-stat-val{font-size:16px;font-weight:700;color:#1a1a2e}
+.dash-stat-val.good{color:#48CAC1}
+.dash-stat-val.warn{color:#C8A040}
+.spark{display:flex;align-items:flex-end;gap:3px;height:40px;margin-top:10px}
+.spark-bar{flex:1;border-radius:3px 3px 0 0;min-width:8px;transition:all 0.3s}
 </style>
 </head>
 <body>
 <div class="app"><div class="amb"></div><div id="root"></div></div>
 
 <script>
-var S={a:'',b:'',c_feel:'',c_do:'',d:[0,0,0],e_gen:'',rate1:0,bodyWhere:'',rate2:0,shame_task:'',shame_expect:''};
+var S={a:'',b:'',c_feel:'',c_do:'',d:[0,0,0],e_gen:'',rate1:0,bodyWhere:'',rate2:0,shame_task:'',shame_expect:'',reflections:[]};
 var AI={};
 var root=document.getElementById('root');
-var AUDIO=false;
-var audioQueue=[];var audioPlaying=false;
+var AUDIO=true;
+
+function makeWhy(text){
+  var btn=h('button','why-toggle','Zašto ovaj korak?');
+  var box=h('div','why-box');box.innerHTML='<p>'+text+'</p>';
+  btn.onclick=function(){
+    var open=box.style.display==='block';
+    box.style.display=open?'none':'block';
+    btn.textContent=open?'Zašto ovaj korak?':'Zatvori';
+  };
+  var wrap=h('div','');wrap.appendChild(btn);wrap.appendChild(box);return wrap;
+}
+
+function renderDashboard(inner,hi){
+  if(!hi||hi.length<2)return;
+  var card=h('div','dash-card');
+  var deltas=hi.map(function(s){return s.r1-s.r2}).filter(function(d){return !isNaN(d)});
+  var avgDelta=deltas.length?(deltas.reduce(function(a,b){return a+b},0)/deltas.length).toFixed(1):0;
+  var streak=0;for(var i=0;i<hi.length;i++){if(hi[i].r2<hi[i].r1)streak++;else break;}
+  var saTotal=hi.filter(function(s){return s.shame}).length;
+  var saDone=hi.filter(function(s){return s.done}).length;
+  var saPct=saTotal?Math.round(saDone/saTotal*100):null;
+
+  var html='<div class="dash-title">Pregled napretka</div>';
+  html+='<div class="dash-stat"><span class="dash-stat-label">Prosečno smanjenje zudnje</span><span class="dash-stat-val '+(avgDelta>0?'good':'')+'">'+( avgDelta>0?'−':'')+Math.abs(avgDelta)+'</span></div>';
+  html+='<div class="dash-stat"><span class="dash-stat-label">Uzastopne sesije s padom</span><span class="dash-stat-val '+(streak>=3?'good':streak>=1?'':'warn')+'">'+streak+'</span></div>';
+  if(saPct!==null)html+='<div class="dash-stat"><span class="dash-stat-label">Eksperimenti završeni</span><span class="dash-stat-val '+(saPct>=50?'good':'warn')+'">'+saDone+'/'+saTotal+' ('+saPct+'%)</span></div>';
+  html+='<div class="dash-stat"><span class="dash-stat-label">Ukupno sesija</span><span class="dash-stat-val">'+hi.length+'</span></div>';
+
+  // Sparkline — sve sesije
+  var sparkMax=Math.max.apply(null,deltas.map(Math.abs))||1;
+  html+='<div style="font-size:11px;color:rgba(26,26,46,0.4);margin-top:12px;margin-bottom:6px">Pad zudnje po sesiji (najnovije desno)</div>';
+  html+='<div class="spark">';
+  var sparkData=hi.slice().reverse().slice(-20); // max 20 bars
+  sparkData.forEach(function(ses){
+    var d=ses.r1-ses.r2;
+    var pct=Math.abs(d)/sparkMax*100;
+    var col=d>0?'#48CAC1':d===0?'rgba(26,26,46,0.15)':'rgba(200,80,80,0.4)';
+    html+='<div class="spark-bar" style="height:'+Math.max(pct,8)+'%;background:'+col+'" title="'+ses.r1+'→'+ses.r2+'"></div>';
+  });
+  html+='</div>';
+  card.innerHTML=html;
+  inner.appendChild(card);
+}
 
 function h(t,c,html){var e=document.createElement(t);if(c)e.className=c;if(html!==undefined)e.innerHTML=html;return e}
 function esc(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML}
 
-/* --- TTS --- */
-function splitText(text,maxLen){
-  var clean=text.replace(/<[^>]*>/g,'').replace(/\u2014/g,', ').replace(/\u2192/g,' u ');
-  var sentences=clean.split(/(?<=[.!?])\s+/);var chunks=[];var cur='';
-  for(var i=0;i<sentences.length;i++){if((cur+' '+sentences[i]).length>maxLen&&cur){chunks.push(cur.trim());cur=sentences[i]}else{cur+=(cur?' ':'')+sentences[i]}}
-  if(cur)chunks.push(cur.trim());return chunks;
+/* --- TTS (Google Cloud) --- */
+var audioQueue=[];
+var audioPlaying=false;
+var _audioCtx=null;
+var _currentSource=null;
+
+function getAudioCtx(){
+  if(!_audioCtx)_audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+  return _audioCtx;
 }
-function speak(text){if(!AUDIO)return;stopAudio();audioQueue=splitText(text,180);playNext()}
-function playNext(){
-  if(!audioQueue.length){audioPlaying=false;updateSI(false);return}
-  audioPlaying=true;updateSI(true);var chunk=audioQueue.shift();
-  var url='https://translate.google.com/translate_tts?ie=UTF-8&q='+encodeURIComponent(chunk)+'&tl=sr&client=tw-ob&ttsspeed=0.9';
-  var a=new Audio(url);
-  a.onended=function(){playNext()};
-  a.onerror=function(){fallbackSpeak(chunk)};
-  a.play().catch(function(){fallbackSpeak(chunk)});
+function cleanText(text){
+  return text.replace(/<[^>]*>/g,'').replace(/—/g,', ').replace(/→/g,' u ').replace(/„|“/g,'"').trim();
 }
-function fallbackSpeak(chunk){var s=window.speechSynthesis;if(s){var u=new SpeechSynthesisUtterance(chunk);u.lang='sr-RS';u.rate=0.85;u.onend=function(){playNext()};s.speak(u)}else{playNext()}}
-function stopAudio(){audioQueue=[];audioPlaying=false;if(window.speechSynthesis)window.speechSynthesis.cancel();updateSI(false)}
+function splitSentences(text){
+  // split on sentence endings, keep chunk under 200 chars
+  var parts=text.match(/[^.!?]+[.!?\s]*|[^.!?]+$/g)||[text];
+  var chunks=[],cur='';
+  parts.forEach(function(p){
+    if((cur+p).length>200&&cur){chunks.push(cur.trim());cur=p;}
+    else cur+=p;
+  });
+  if(cur.trim())chunks.push(cur.trim());
+  return chunks.filter(Boolean);
+}
+
+async function fetchTTSAudio(text){
+  var resp=await fetch('/api/tts',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({text:text})
+  });
+  if(!resp.ok)throw new Error('TTS HTTP '+resp.status);
+  var arrayBuf=await resp.arrayBuffer();
+  return arrayBuf;
+}
+
+function speak(text){
+  if(!AUDIO)return;
+  stopAudio();
+  var clean=cleanText(text);
+  if(!clean)return;
+  var sentences=splitSentences(clean);
+  if(!sentences.length)return;
+  audioQueue=sentences.slice();
+  audioPlaying=true;
+  updateSI(true);
+  // prefetch first two
+  var prefetched={};
+  function prefetch(idx){
+    if(idx<audioQueue.length&&!prefetched[idx]){
+      prefetched[idx]='loading';
+      fetchTTSAudio(audioQueue[idx]).then(function(buf){
+        prefetched[idx]=buf;
+      }).catch(function(){prefetched[idx]='error';});
+    }
+  }
+  prefetch(0);prefetch(1);
+
+  var idx=0;
+  function playIdx(){
+    if(!audioPlaying||idx>=audioQueue.length){
+      audioPlaying=false;updateSI(false);return;
+    }
+    prefetch(idx+2); // prefetch ahead
+    function waitAndPlay(){
+      if(prefetched[idx]instanceof ArrayBuffer){
+        var ctx=getAudioCtx();
+        ctx.decodeAudioData(prefetched[idx].slice(0),function(decoded){
+          if(!audioPlaying)return;
+          var src=ctx.createBufferSource();
+          src.buffer=decoded;
+          src.connect(ctx.destination);
+          _currentSource=src;
+          src.onended=function(){idx++;setTimeout(playIdx,60);};
+          src.start(0);
+        },function(){idx++;playIdx();});
+      } else if(prefetched[idx]==='error'){
+        idx++;playIdx();
+      } else {
+        setTimeout(waitAndPlay,50); // still loading
+      }
+    }
+    waitAndPlay();
+  }
+  playIdx();
+}
+
+function stopAudio(){
+  audioPlaying=false;
+  audioQueue=[];
+  try{if(_currentSource)_currentSource.stop();}catch(e){}
+  _currentSource=null;
+  updateSI(false);
+}
 function updateSI(on){var el=document.getElementById('speak-ind');if(el)el.style.display=on?'inline-block':'none'}
 
 /* --- AI API via Netlify Function proxy --- */
@@ -272,7 +404,7 @@ async function generatePersonalized(){
     'A (Situacija): "'+S.a+'"\n'+
     'B (Iracionalno uverenje): "'+S.b+'"\n'+
     'C (Emocije): "'+S.c_feel+'"\n'+
-    'C (Ponasanje ako popusti): "'+S.c_do+'"\n\n'+
+    'C (Sta radi ili sta izbegava): "'+S.c_do+'"\n\n'+
     'Generisi personalizovane terapeutske odgovore u JSON formatu:\n'+
     '{\n'+
     '  "d_logic_q": "Logicko pitanje za OVO KONKRETNO uverenje. STROGO JEDNO PITANJE — jedna recenica, jedna vrednost DA/NE. DA i NE moraju imati jasno suprotno znacenje. Ne kombinuj dva pitanja.",\n'+
@@ -311,8 +443,11 @@ function makeTa(placeholder,value,onInput){
   var wrap=h('div','');wrap.appendChild(ta);wrap.appendChild(hint);return{wrap:wrap,ta:ta};
 }
 function bar(cur,total){total=total||8;var d=h('div','step-bar');
-  for(var i=0;i<total;i++){var s=h('div','step-seg');s.style.width=i===cur?'28px':i<cur?'16px':'10px';
-  s.style.background=i===cur?'#fff':i<cur?'rgba(255,255,255,0.5)':'rgba(255,255,255,0.2)';d.appendChild(s)}return d}
+  for(var i=0;i<total;i++){var s=h('div','step-seg');
+    var size=i===cur?'10px':'7px';
+    s.style.width=size;s.style.height=size;
+    s.style.background=i===cur?'#fff':i<cur?'rgba(255,255,255,0.6)':'rgba(255,255,255,0.25)';
+    d.appendChild(s);}return d}
 
 function loadHist(){try{return JSON.parse(localStorage.getItem('rebt_hist')||'[]')}catch(e){return[]}}
 function saveSession(){var hi=loadHist();
@@ -326,7 +461,7 @@ function renderHome(){
   var hi=loadHist(),pending=getPending(),count=hi.length;
   s.innerHTML='<div style="margin-bottom:44px"><div class="ldim">REBT Protocol</div>'+
     '<h1 class="t1">Preispitaj uverenje.</h1>'+
-    '<p class="hint" style="margin-top:14px;max-width:270px">AI terapeut koji te vodi kroz ABCDE proces. Personalizovano, ne genericno.</p>'+
+    '<p class="hint" style="margin-top:14px;max-width:270px">AI terapeut koji te vodi kroz ABCDE proces za bilo koji izvor negativnih emocija. Personalizovano, ne genericno.</p>'+
     (count?'<p style="margin-top:12px"><span style="display:inline-block;background:rgba(255,255,255,0.2);color:#fff;font-size:11px;padding:5px 14px;border-radius:20px;font-weight:600">'+count+' sesija</span></p>':'')+
     '</div>';
   if(pending){var pb=h('button','');
@@ -334,7 +469,7 @@ function renderHome(){
     pb.innerHTML='<div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.6);margin-bottom:8px;font-weight:600">Shame attack čeka</div><div style="font-size:14px;color:#fff;line-height:1.5;font-weight:500">Jesi li uradio eksperiment?</div>';
     pb.onclick=function(){renderReview(pending.idx,pending.s)};s.appendChild(pb)}
   var btn=h('button','panic-btn','Pokreni');
-  btn.onclick=function(){S={a:'',b:'',c_feel:'',c_do:'',d:[0,0,0],e_gen:'',rate1:0,bodyWhere:'',rate2:0,shame_task:'',shame_expect:''};AI={};renderA()};
+  btn.onclick=function(){S={a:'',b:'',c_feel:'',c_do:'',d:[0,0,0],e_gen:'',rate1:0,bodyWhere:'',rate2:0,shame_task:'',shame_expect:'',reflections:[]};AI={};renderA()};
   s.appendChild(btn);
   if(count>0){var hb=h('button','bs','Istorija');hb.style.marginTop='20px';hb.onclick=renderHistory;s.appendChild(hb)}
   root.appendChild(s);
@@ -346,7 +481,7 @@ function renderA(){
   inner.appendChild(h('div','label','A \u2014 Aktivirajuci dogadjaj'));
   var q='Sta se upravo desilo ili desava? Opisi situaciju samo cinjenicama.';
   inner.appendChild(h('p','therapist',q));speak(q);
-  inner.appendChild(h('p','hint','Npr: "Kasno je, sedim sam, vidim cokoladu u frizideru."<br><br>'));
+  inner.appendChild(h('p','hint','Npr: "Kasno je, sedim sam, vidim cokoladu u frizideru." ili "Pogledao/la sam se u ogledalo pre izlaska." ili "Trebalo je da pocnem zadatak i nisam."<br><br>'));
   var nb=h('button','bp','Dalje');nb.disabled=!S.a;
   var t=makeTa('Sta se desilo...',S.a,function(v){S.a=v;nb.disabled=!v});
   inner.appendChild(t.wrap);nb.onclick=function(){renderB()};inner.appendChild(nb);
@@ -376,8 +511,8 @@ function renderC(){
   inner.appendChild(h('p','therapist',q1));speak(q1);
   var nb=h('button','bp','Dalje');function ck(){nb.disabled=!(S.c_feel&&S.c_do)}
   var t1=makeTa('Emocije i telesne senzacije...',S.c_feel,function(v){S.c_feel=v;ck()});inner.appendChild(t1.wrap);
-  inner.appendChild(h('p','therapist','I sta bi uradio ako popustis tom uverenju?'));
-  var t2=makeTa('Kako bi se ponasao...',S.c_do,function(v){S.c_do=v;ck()});inner.appendChild(t2.wrap);
+  inner.appendChild(h('p','therapist','Zbog ovog uverenja — sta radis, ili sta izbegavas?'));
+  var t2=makeTa('Sta radis ili sta izbegavas...',S.c_do,function(v){S.c_do=v;ck()});inner.appendChild(t2.wrap);
   nb.disabled=!(S.c_feel&&S.c_do);
   nb.onclick=function(){renderLoading()};
   var bb=h('button','bs','Nazad');bb.onclick=function(){renderB()};
@@ -414,6 +549,7 @@ function renderD(){
   makeTopbar(inner);inner.appendChild(bar(3));
   inner.appendChild(h('div','label','D \u2014 Osporavanje'));
   var q='Hajde da testiramo to uverenje.';inner.appendChild(h('h2','t2',q));speak(q);
+  inner.appendChild(makeWhy('Iracionalna uverenja opstaju jer ih nikad nismo direktno ispitali. Ova tri testa ih izlažu svetlosti — logičkom, empirijskom i praktičnom. Uverenje koje ne preživi nijedan od njih nema osnove da i dalje upravlja tvojim osećanjima.'));
   var ib=h('div','insight');ib.innerHTML='<div class="il">Pod lupom</div><div class="it">"'+esc(S.b)+'"</div>';inner.appendChild(ib);
   var cx=h('div','ctx');
   cx.innerHTML='<div class="cl">Tvoje C</div><div class="cv"><strong>Osecanja:</strong> '+esc(S.c_feel)+'</div><div class="cv" style="margin-top:6px"><strong>Ponasanje:</strong> '+esc(S.c_do)+'</div>';
@@ -433,7 +569,8 @@ function renderD(){
       fb.innerHTML='<p style="margin-bottom:12px">'+esc(qq.y)+'</p>'+
         '<textarea class="ta" placeholder="Tvoja misao (opciono)..." style="min-height:64px;font-size:13px;margin-bottom:0"></textarea>'+
         '<div class="dict-hint">🎤 Mikrofon na tastaturi za diktaciju</div>';
-      fb.style.display='block';speak(qq.y);ans[idx]=true;ck()};
+      fb.style.display='block';speak(qq.y);ans[idx]=true;ck();
+      var rta=fb.querySelector('textarea');if(rta){rta.oninput=function(){if(rta.value.trim()){S.reflections[idx]={q:qq.q,a:rta.value.trim()}}}}};
     nb2.onclick=function(){nb2.className='yn on';yb.className='yn';fb.innerHTML='<p>'+esc(qq.n)+'</p>';fb.style.display='block';speak(qq.n);ans[idx]=true;ck()};
     row.appendChild(yb);row.appendChild(nb2);card.appendChild(row);card.appendChild(fb);inner.appendChild(card);
   });
@@ -451,11 +588,11 @@ function renderE(){
   inner.appendChild(h('div','label','E \u2014 Novo uverenje'));
   var q='Staro uverenje palo je na sva tri testa. Evo sta stavljamo umesto njega.';inner.appendChild(h('p','therapist',q));speak(q);
   var ob=h('div','old-b');
-  ob.innerHTML='<div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(200,80,80,0.5);margin-bottom:10px;font-weight:600">Staro</div><div style="font-family:Instrument Serif,Georgia,serif;font-size:17px;color:rgba(255,255,255,0.3);line-height:1.6;font-style:italic;text-decoration:line-through">"'+esc(S.b)+'"</div>';
+  ob.innerHTML='<div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(200,80,80,0.5);margin-bottom:10px;font-weight:600">Staro</div><div style="font-family:Instrument Serif,Georgia,serif;font-size:17px;color:rgba(180,60,60,0.5);line-height:1.6;font-style:italic;text-decoration:line-through">"'+esc(S.b)+'"</div>';
   inner.appendChild(ob);
   inner.appendChild(h('div','','<div style="text-align:center;font-size:20px;color:rgba(72,202,193,0.4);margin:10px 0">\u2193</div>'));
   var nb2=h('div','new-b');
-  nb2.innerHTML='<div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#48CAC1;margin-bottom:10px;font-weight:600">Novo</div><div style="font-family:Instrument Serif,Georgia,serif;font-size:17px;color:rgba(255,255,255,0.9);line-height:1.7;font-style:italic">"'+esc(S.e_gen)+'"</div>';
+  nb2.innerHTML='<div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#48CAC1;margin-bottom:10px;font-weight:600">Novo</div><div style="font-family:Instrument Serif,Georgia,serif;font-size:17px;color:#1a1a2e;line-height:1.7;font-style:italic">"'+esc(S.e_gen)+'"</div>';
   inner.appendChild(nb2);
   setTimeout(function(){speak(S.e_gen)},800);
   inner.appendChild(h('p','hint','Prilagodi ako zelis. Ako odgovara, ostavi prazno.<br><br>'));
@@ -470,8 +607,9 @@ function renderBody1(){
   root.innerHTML='';var s=h('div','sf');var inner=h('div','sfi fi');
   makeTopbar(inner);inner.appendChild(bar(5));
   inner.appendChild(h('div','label','Telo \u2014 Intenzitet'));
-  var q='Koliko je jaka zudnja sad? Daj joj broj.';
+  var q='Koliko je jak taj osecaj ili pritisak sad? Daj mu broj.';
   inner.appendChild(h('p','therapist',q));speak(q);
+  inner.appendChild(makeWhy('Merimo intenzitet pre i posle — da bi tvoj nervni sistem video konkretan dokaz da talas osecaja zaista prolazi. Broj nije procena vrednosti, samo termometar.'));
   var grid=h('div','rg');var nb=h('button','bp','Dalje');nb.disabled=true;
   for(var n=1;n<=10;n++){(function(n){var b=h('button','rb');b.textContent=n;
     b.onclick=function(){S.rate1=n;grid.querySelectorAll('.rb').forEach(function(x){x.className='rb';x.style.background=''});
@@ -484,7 +622,7 @@ function renderBody2(){
   root.innerHTML='';var s=h('div','sf');var inner=h('div','sfi fi');
   makeTopbar(inner);inner.appendChild(bar(5));
   inner.appendChild(h('div','label','Telo \u2014 Lokacija'));
-  var q='Gde u telu osetis zudnju?';inner.appendChild(h('p','therapist',q));speak(q);
+  var q='Gde u telu osetis taj osecaj?';inner.appendChild(h('p','therapist',q));speak(q);
   var areas=['Stomak \u2014 stezanje, praznina','Grudi \u2014 pritisak','Grlo \u2014 cvor, suva usta','Glava \u2014 misli jure','Vilica \u2014 stiskam zube','Ruke \u2014 nemir'];
   var nb=h('button','bp','Dalje \u2014 REI');nb.disabled=true;
   areas.forEach(function(a){var b=h('button','body-opt',a);
@@ -499,7 +637,9 @@ function renderREI(){
   root.innerHTML='';var s=h('div','sf');var inner=h('div','sfi fi');inner.style.alignItems='center';
   makeTopbar(inner);inner.appendChild(bar(6));
   inner.appendChild(h('div','label','REI \u2014 Zamisljanje'));
-  var bp=S.bodyWhere.split(' \u2014')[0].toLowerCase();
+  var bpRaw=S.bodyWhere.split(' \u2014')[0];
+  var bpMap={'Stomak':'stomaku','Grudi':'grudima','Grlo':'grlu','Glava':'glavi','Vilica':'vilici','Ruke':'rukama'};
+  var bp=bpMap[bpRaw]||bpRaw.toLowerCase()+'u';
   var scene=AI.rei_scene||'Zamisli svoju situaciju.';
   var feelShort=S.c_feel.length>60?S.c_feel.substring(0,60)+'...':S.c_feel;
   var step2text=AI.rei_step2||
@@ -507,12 +647,17 @@ function renderREI(){
   var step2speak=AI.rei_step2_speak||
     'Zadrzite taj isti scenario. Sada aktivno promenite tip emocije — umesto '+feelShort+', pustite da bude nezadovoljstvo ili zaljenje. Isti dogadjaj, drugacija emocija.';
   var steps=[
-    {text:esc(scene)+' Pusti najgore osecanje. Oseti ga u '+bp+'u. <strong>Ostani tu.</strong>',
-     speak:scene+' Pusti najgore osecanje. Oseti ga u '+bp+'u. Ostani tu.',dur:25},
+    {text:esc(scene)+' Pusti najgore osecanje. Oseti ga u '+bp+'. <strong>Ostani tu.</strong>',
+     speak:scene+' Pusti najgore osecanje. Oseti ga u '+bp+'. Ostani tu.',dur:25},
     {text:step2text,
      speak:step2speak,dur:20},
     {text:'Izgovori naglas:<br><br><em>"'+esc(S.e_gen)+'"</em>',
      speak:'Izgovori naglas. '+S.e_gen,dur:15}
+  ];
+  var whyTexts=[
+    'Mozak ne razlikuje dobro zamišljenu scenu od stvarne. Kada svesno zamisliš najgori scenario i ostaneš u njemu — bez bežanja — živčani sistem uči da nije opasan.',
+    'Ellis je otkrio da možeš zadržati isti scenario u glavi ali promeniti TIP emocije — ne njen intenzitet. Iz iracionalne (krivica, panika) u odgovarajuću (nezadovoljstvo, žaljenje). Ovo je mišić koji se vežba.',
+    'Izgovaranje naglas aktivira drugačije putanje u mozgu od puke misli. Novo uverenje počinje da se oseća kao tvoje tek kad ga čuješ sopstvenim glasom.'
   ];
   var step=0;
   var instrBox=h('div','');instrBox.style.cssText='background:rgba(255,255,255,0.15);border:1.5px solid rgba(255,255,255,0.3);border-radius:16px;padding:24px 20px;margin:16px 0;text-align:center;min-height:130px;display:flex;align-items:center;justify-content:center';
@@ -529,8 +674,10 @@ function renderREI(){
       if(step<steps.length-1){nb.textContent='Sledeći korak';nb.style.display='block';
         nb.onclick=function(){step++;tl=steps[step].dur;instrText.innerHTML=steps[step].text;speak(steps[step].speak);
         document.getElementById('rei-t').textContent=tl;document.getElementById('rei-c').setAttribute('stroke-dashoffset','0');
-        nb.style.display='none';tr=true;ti=setInterval(tick,1000)}}
-      else{nb.textContent='Proveri žudnju';nb.style.display='block';nb.onclick=function(){renderBody3()}}}}
+        nb.style.display='none';
+        var wb=document.getElementById('rei-why');if(wb){wb.querySelector('.why-box').style.display='none';wb.querySelector('.why-toggle').textContent='Zašto ovaj korak?';wb.querySelector('p').textContent=whyTexts[step];}
+        tr=true;ti=setInterval(tick,1000)}}
+      else{nb.textContent='Proveri osećaj';nb.style.display='block';nb.onclick=function(){renderBody3()}}}}
   ti=setInterval(tick,1000);inner.appendChild(nb);s.appendChild(inner);root.appendChild(s);
 }
 
@@ -538,15 +685,15 @@ function renderBody3(){
   root.innerHTML='';var s=h('div','sf');var inner=h('div','sfi fi');
   makeTopbar(inner);inner.appendChild(bar(6));
   inner.appendChild(h('div','label','Provera'));
-  var q='Kako je sad?';inner.appendChild(h('p','therapist',q));speak(q);
-  inner.appendChild(h('p','hint','Bila je <strong>'+S.rate1+'/10</strong> pre REI.<br><br>'));
+  var q='Kako je taj osecaj sad?';inner.appendChild(h('p','therapist',q));speak(q);
+  inner.appendChild(h('p','hint','Bio/la je <strong>'+S.rate1+'/10</strong> pre REI.<br><br>'));
   var grid=h('div','rg');
   var delta=h('p','');delta.style.cssText='font-size:14px;margin:12px 0 20px;text-align:center;display:none';
   var nb=h('button','bg','Dalje \u2014 Shame Attack');nb.disabled=true;
   for(var n=1;n<=10;n++){(function(n){var b=h('button','rb');b.textContent=n;
     b.onclick=function(){S.rate2=n;grid.querySelectorAll('.rb').forEach(function(x){x.className='rb';x.style.background=''});
     b.className='rb sel';b.style.background='#48CAC1';delta.style.display='block';
-    if(n<S.rate1){delta.textContent='Sa '+S.rate1+' na '+n+'. Talas prolazi.';delta.style.color='rgba(255,255,255,0.9)'}
+    if(n<S.rate1){delta.textContent='Sa '+S.rate1+' na '+n+'. Osecaj prolazi.';delta.style.color='rgba(255,255,255,0.9)'}
     else{delta.textContent=n===S.rate1?'Isto. Nekad treba vise vremena.':'Porasla. Nastavi.';delta.style.color='rgba(255,255,255,0.4)'}
     nb.disabled=false};grid.appendChild(b)})(n)}
   inner.appendChild(grid);inner.appendChild(delta);nb.onclick=function(){renderShame()};
@@ -561,6 +708,7 @@ function renderShame(){
   inner.appendChild(h('div','label',screenLabel));
   var q='Ovo je rad u realnosti. Sve pre ovoga je bilo u glavi.';
   inner.appendChild(h('p','therapist',q));speak(q);
+  inner.appendChild(makeWhy(isNTF?'Tolerancija na frustraciju raste samo kroz direktno iskustvo — ne kroz razgovor o njoj. Svaki put kad prođeš veče bez "nagrade" u hrani i vidiš da si OK, tvoj mozak briše jednu od pogrešnih jednadžbi.':'Namerno radiš ono čega se stidiš — uz punu svest, u stvarnoj situaciji. Katastrofa koju očekuješ obično ne dolazi. Taj jaz između očekivanja i realnosti je ono što menja uverenje.'));
   var task=h('div','insight');task.innerHTML='<div class="il">Tvoj eksperiment</div><div class="it">'+esc(S.shame_task)+'</div>';inner.appendChild(task);
   inner.appendChild(h('p','therapist','Pre nego sto to uradis \u2014 napisi sta OCEKUJES da ce se desiti.'));
   var nb=h('button','bg','Zavrsi i sacuvaj');nb.disabled=!S.shame_expect;
@@ -572,19 +720,28 @@ function renderShame(){
 
 function renderVictory(){
   root.innerHTML='';var s=h('div','sf');var inner=h('div','sfi fi');inner.style.justifyContent='flex-start';inner.style.paddingTop='32px';
-  speak('Sesija zavrsena. Zudnja sa '+S.rate1+' na '+S.rate2+'.');
+  speak('Sesija zavrsena. Intenzitet sa '+S.rate1+' na '+S.rate2+'.');
   inner.innerHTML+='<div style="text-align:center;margin-bottom:24px"><div style="width:60px;height:60px;border-radius:50%;background:rgba(126,184,168,0.1);display:inline-flex;align-items:center;justify-content:center;font-size:26px;color:#7EB8A8">&#10003;</div></div>'+
     '<h2 class="t2" style="text-align:center;color:#fff">Sesija završena.</h2>'+
-    '<p style="text-align:center;margin-bottom:6px;color:rgba(255,255,255,0.85);font-size:14px">Zudnja: '+S.rate1+' \u2192 '+S.rate2+'</p>'+
+    '<p style="text-align:center;margin-bottom:6px;color:rgba(255,255,255,0.85);font-size:14px">Intenzitet: '+S.rate1+' \u2192 '+S.rate2+'</p>'+
     (S.shame_task?'<p class="hint" style="text-align:center;margin-bottom:24px">Ne zaboravi shame attack.</p>':'<p class="hint" style="text-align:center;margin-bottom:24px">Sacuvano.</p>');
-  var items=[
-    {l:'A',bg:'rgba(72,202,193,0.08)',c:'#48CAC1',label:'Dogadjaj',text:S.a},
-    {l:'B',bg:'rgba(200,100,100,0.06)',c:'rgba(200,100,100,0.6)',label:'Staro',text:S.b},
-    {l:'E',bg:'rgba(72,202,193,0.08)',c:'#48CAC1',label:'Novo',text:S.e_gen}
-  ];
-  items.forEach(function(it){var row=h('div','srow');
-    row.innerHTML='<div class="slet" style="background:'+it.bg+';color:'+it.c+'">'+it.l+'</div><div class="stxt" style="color:#fff"><strong style="color:#fff">'+it.label+':</strong> '+esc(it.text)+'</div>';
-    inner.appendChild(row)});
+  var vOld=h('div','old-b');vOld.style.marginBottom='8px';
+  vOld.innerHTML='<div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(180,60,60,0.5);margin-bottom:8px;font-weight:600">Staro uverenje</div><div style="font-family:Instrument Serif,Georgia,serif;font-size:15px;color:rgba(180,60,60,0.5);line-height:1.6;font-style:italic;text-decoration:line-through">„'+esc(S.b)+'“</div>';
+  inner.appendChild(vOld);
+  inner.appendChild(h('div','','<div style="text-align:center;font-size:18px;color:rgba(72,202,193,0.5);margin:6px 0">\u2193</div>'));
+  var vNew=h('div','new-b');vNew.style.marginBottom='20px';
+  vNew.innerHTML='<div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#48CAC1;margin-bottom:8px;font-weight:600">Novo uverenje</div><div style="font-family:Instrument Serif,Georgia,serif;font-size:15px;color:#1a1a2e;line-height:1.6;font-style:italic">„'+esc(S.e_gen)+'“</div>';
+  inner.appendChild(vNew);
+  if(S.reflections&&S.reflections.filter(Boolean).length>0){
+    var rCard=h('div','insight');rCard.style.marginBottom='16px';
+    var rHtml='<div class="il">Tvoji uvidi iz sesije</div>';
+    S.reflections.filter(Boolean).forEach(function(r){
+      rHtml+='<div style="margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid rgba(26,26,46,0.07)">'+
+        '<div style="font-size:11px;color:rgba(26,26,46,0.4);margin-bottom:4px;font-style:italic">'+esc(r.q)+'</div>'+
+        '<div style="font-size:14px;color:#1a1a2e;line-height:1.5">"'+esc(r.a)+'"</div></div>';
+    });
+    rCard.innerHTML=rHtml;inner.appendChild(rCard);
+  }
   var nb=h('button','bp','Pocetni ekran');nb.onclick=renderHome;inner.appendChild(nb);
   s.appendChild(inner);root.appendChild(s);
 }
@@ -596,7 +753,7 @@ function renderReview(idx,sess){
   var q='Hajde da uporedimo ocekivanje i realnost.';inner.appendChild(h('p','therapist',q));speak(q);
   var task=h('div','insight');task.innerHTML='<div class="il">Eksperiment</div><div class="it">'+esc(sess.shame)+'</div>';inner.appendChild(task);
   var exp=h('div','old-b');
-  exp.innerHTML='<div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(200,80,80,0.5);margin-bottom:10px;font-weight:600">Ocekivanje</div><div style="font-size:14px;color:rgba(255,255,255,0.5);line-height:1.6">'+esc(sess.expect)+'</div>';
+  exp.innerHTML='<div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(200,80,80,0.5);margin-bottom:10px;font-weight:600">Ocekivanje</div><div style="font-size:14px;color:rgba(26,26,46,0.6);line-height:1.6">'+esc(sess.expect)+'</div>';
   inner.appendChild(exp);
   inner.appendChild(h('p','therapist','Sta se ZAISTA desilo?'));
   var nb=h('button','bg','Sacuvaj');nb.disabled=true;
@@ -606,10 +763,10 @@ function renderReview(idx,sess){
     inner.innerHTML='';
     var q2='Pogledaj razliku. Ovaj jaz je dokaz tvom nervnom sistemu.';
     inner.appendChild(h('div','label','Jaz'));inner.appendChild(h('p','therapist',q2));speak(q2);
-    var e2=h('div','old-b');e2.innerHTML='<div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(200,100,100,0.5);margin-bottom:8px">Ocekivanje</div><div style="font-size:14px;color:rgba(255,255,255,0.35);line-height:1.6;text-decoration:line-through">'+esc(sess.expect)+'</div>';inner.appendChild(e2);
+    var e2=h('div','old-b');e2.innerHTML='<div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(200,100,100,0.5);margin-bottom:8px">Ocekivanje</div><div style="font-size:14px;color:rgba(180,60,60,0.4);line-height:1.6;text-decoration:line-through">'+esc(sess.expect)+'</div>';inner.appendChild(e2);
     inner.appendChild(h('div','','<div style="text-align:center;font-size:18px;color:rgba(72,202,193,0.5);margin:8px 0">\u2193</div>'));
-    var a2=h('div','new-b');a2.innerHTML='<div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#48CAC1;margin-bottom:8px;font-weight:600">Realnost</div><div style="font-size:14px;color:rgba(255,255,255,0.8);line-height:1.6">'+esc(actual)+'</div>';inner.appendChild(a2);
-    inner.appendChild(h('p','hint','<br>Svaki put kad vidis ovaj jaz, emocionalni uvid raste.<br><br>'));
+    var a2=h('div','new-b');a2.innerHTML='<div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#48CAC1;margin-bottom:8px;font-weight:600">Realnost</div><div style="font-size:14px;color:#1a1a2e;line-height:1.6">'+esc(actual)+'</div>';inner.appendChild(a2);
+    inner.appendChild(h('p','hint','<br>Svaki put kad vidiš ovaj jaz, tvoj mozak uči da katastrofa nije došla — i sledeći put strah je manji.<br><br>'));
     var hb=h('button','bp','Pocetni ekran');hb.onclick=renderHome;inner.appendChild(hb);
   };
   inner.appendChild(nb);var bb=h('button','bs','Nazad');bb.onclick=renderHome;inner.appendChild(bb);
@@ -618,9 +775,10 @@ function renderReview(idx,sess){
 
 function renderHistory(){
   root.innerHTML='';var s=h('div','sf');var inner=h('div','sfi fi');inner.style.justifyContent='flex-start';inner.style.paddingTop='0';
-  makeTopbar(inner);inner.appendChild(h('div','label','Istorija'));
+  makeTopbar(inner);var histLabel=h('div','label','Istorija');histLabel.style.color='rgba(255,255,255,0.9)';inner.appendChild(histLabel);
   var hi=loadHist();
   if(!hi.length){inner.appendChild(h('p','hint','Nema sesija.'));s.appendChild(inner);root.appendChild(s);return}
+  renderDashboard(inner,hi);
   hi.forEach(function(ses,idx){var item=h('div','hist-item');item.style.cursor='pointer';
     var d=new Date(ses.ts);var ds=d.getDate()+'.'+(d.getMonth()+1)+'. '+d.getHours()+':'+('0'+d.getMinutes()).slice(-2);
     var rateColor=ses.r2<ses.r1?'#48CAC1':'rgba(26,26,46,0.4)';
