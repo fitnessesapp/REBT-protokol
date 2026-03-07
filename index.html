@@ -86,7 +86,7 @@ textarea{font-family:'DM Sans',sans-serif;outline:none;resize:none;-webkit-appea
 /* --- INPUT --- */
 .ta{
   width:100%;background:#fff;border:1.5px solid rgba(72,202,193,0.3);
-  border-radius:14px;padding:14px 16px;color:#1a1a2e;font-size:15px;
+  border-radius:14px;padding:14px 16px;color:#1a1a2e !important;font-size:15px;
   line-height:1.7;min-height:100px;margin-bottom:4px;transition:border-color 0.3s,box-shadow 0.3s;
   box-shadow:0 2px 8px rgba(0,0,0,0.06);
 }
@@ -284,9 +284,11 @@ async function generatePersonalized(){
     '  "d_func_q": "Funkcionalno pitanje koje se referise na klijentove KONKRETNE emocije i ponasanja iz C. STROGO JEDNO PITANJE — jedna recenica, jedna vrednost DA/NE. DA i NE moraju imati jasno suprotno znacenje. Ne kombinuj dva pitanja.",\n'+
     '  "d_func_yes": "Odgovor ako DA — citiraj klijentove reci iz C da pokaze kontradikciju (2-3 recenice)",\n'+
     '  "d_func_no": "Odgovor ako NE (1-2 recenice)",\n'+
-    '  "e_new_belief": "Novo racionalno uverenje — DIREKTNO preformulisi klijentovo uverenje iz B. Ne budi generican. Koristi klijentove reci i situaciju. Fleksibilna preferencija umesto zahteva. Max 3 recenice.",\n'+
-    '  "shame_task": "VAZNO — analiziraj klijentovo uverenje iz B i emocije/ponasanje iz C pre nego sto predlozis eksperiment. Postoje DVA tipa: (1) Ako je motivacija ZABAVA, UZIVANJE, OLAKSANJE ili DOSADA (niska tolerancija na frustraciju, Ellis-ov treci mus), predlozi EKSPERIMENT TOLERANCIJE: klijent svesno bira alternativni izvor zadovoljstva iste veceri i bezi da li mu je OK i bez hrane. (2) Ako je motivacija STRAH OD NEUSPEHA, STID ili SRAMOTA, predlozi pravi SHAME ATTACK koji napada taj strah direktno. Budi konkretan, izvodljiv danas ili sutra. 2-3 recenice.",\n'+
-    '  "rei_scene": "REI scena — NEGATIVNI scenario. Klijent zamišlja kako POPUŠTA uverenju i kako se oseća POSLE: krivica, stid, osecaj poraza, tegoba u telu. Koristi klijentovu situaciju iz A i ponasanje iz C_do. NE opisuj pozitivnu alternativu — opisuj negativnu posledicu koju klijent treba emotivno da dozivi pre nego sto je promeni. 1-2 recenice."\n'+
+    '  "e_new_belief": "Novo racionalno uverenje — DIREKTNO preformulisi klijentovo uverenje iz B. Koristi klijentove tacne reci. Fleksibilna zelja umesto zahteva. MAKSIMALNO 2 kratke recenice.",\n'+
+    '  "shame_type": "ntf ako je motivacija zabava/olaksanje/dosada/uzivanje. attack ako je motivacija strah od neuspeha ili stid/sramota. Samo jedna vrednost: ntf ili attack.",\n'+
+    '  "shame_task": "DVA tipa na osnovu shame_type: (1) ntf — EKSPERIMENT TOLERANCIJE: klijent svesno bira alternativni izvor zadovoljstva iste veceri bez hrane, i belezi kako se osecao. (2) attack — pravi SHAME ATTACK koji napada strah/stid direktno. Konkretan, izvodljiv danas/sutra. 2-3 recenice.",\n'+
+    '  "rei_scene": "NEGATIVNI REI scenario. Klijent zamislija kako POPUSTA i kako se oseca POSLE: krivica, stid, osecaj poraza. Koristi A situaciju i C_do ponasanje. NE opisuj pozitivnu alternativu. 1-2 recenice.",\n'+
+    '  "rei_step2": "REI korak 2 — ZAMENA EMOCIJE po Ellis metodi. Klijent zadrzava ISTI negativni scenario ali menja TIP emocije iz iracionalne u odgovarajucu. Napisi instrukciju sa klijentovim tacnim emocijama iz C: Zadrzi taj isti scenario. Umesto [C emocija], pusti da bude [racionalna alternativa]. 1-2 recenice."\n'+
     '}\n\nVAZNO: Odgovori SAMO JSON. Bez teksta pre ili posle. Bez backtick-a. Koristi klijentove tacne reci gde god mozes.';
   return await callAI(prompt);
 }
@@ -418,15 +420,15 @@ function renderD(){
   inner.appendChild(cx);
 
   var qs=[
-    {type:'Logicki test',q:AI.d_logic_q||'Da li logicki mora da bude tako?',y:AI.d_logic_yes,n:AI.d_logic_no},
-    {type:'Empirijski test',q:AI.d_empir_q||'Koji su dokazi?',y:AI.d_empir_yes,n:AI.d_empir_no},
-    {type:'Funkcionalni test',q:AI.d_func_q||'Da li ti ovo pomaze?',y:AI.d_func_yes,n:AI.d_func_no}
+    {type:'Logički test',yLabel:'Da, logički sledi',nLabel:'Ne, ne sledi',q:AI.d_logic_q||'Da li logicki mora da bude tako?',y:AI.d_logic_yes,n:AI.d_logic_no},
+    {type:'Empirijski test',yLabel:'Ima dokaza',nLabel:'Nema dokaza',q:AI.d_empir_q||'Koji su dokazi?',y:AI.d_empir_yes,n:AI.d_empir_no},
+    {type:'Funkcionalni test',yLabel:'Da, pomaže',nLabel:'Ne, ne pomaže',q:AI.d_func_q||'Da li ti ovo pomaze?',y:AI.d_func_yes,n:AI.d_func_no}
   ];
   var ans=[false,false,false];
   qs.forEach(function(qq,idx){
     var card=h('div','dcard');
     card.innerHTML='<div class="dt">'+qq.type+'</div><div class="dq">'+esc(qq.q)+'</div>';
-    var row=h('div','ynr'),yb=h('button','yn','Da'),nb2=h('button','yn','Ne'),fb=h('div','da');fb.style.display='none';
+    var row=h('div','ynr'),yb=h('button','yn',qq.yLabel),nb2=h('button','yn',qq.nLabel),fb=h('div','da');fb.style.display='none';
     yb.onclick=function(){yb.className='yn on';nb2.className='yn';
       fb.innerHTML='<p style="margin-bottom:12px">'+esc(qq.y)+'</p>'+
         '<textarea class="ta" placeholder="Tvoja misao (opciono)..." style="min-height:64px;font-size:13px;margin-bottom:0"></textarea>'+
@@ -500,11 +502,15 @@ function renderREI(){
   var bp=S.bodyWhere.split(' \u2014')[0].toLowerCase();
   var scene=AI.rei_scene||'Zamisli svoju situaciju.';
   var feelShort=S.c_feel.length>60?S.c_feel.substring(0,60)+'...':S.c_feel;
+  var step2text=AI.rei_step2||
+    'Zadrži taj isti scenario u glavi. Sada aktivno promeni TIP emocije — umesto <em>"'+esc(feelShort)+'"</em>, pusti da bude nezadovoljstvo ili žaljenje. Isti dogadjaj, drugačija emocija.';
+  var step2speak=AI.rei_step2_speak||
+    'Zadrzite taj isti scenario. Sada aktivno promenite tip emocije — umesto '+feelShort+', pustite da bude nezadovoljstvo ili zaljenje. Isti dogadjaj, drugacija emocija.';
   var steps=[
     {text:esc(scene)+' Pusti najgore osecanje. Oseti ga u '+bp+'u. <strong>Ostani tu.</strong>',
      speak:scene+' Pusti najgore osecanje. Oseti ga u '+bp+'u. Ostani tu.',dur:25},
-    {text:'Sad pomeri to osecanje za jedan stepen. Znas taj osecaj — <em>"'+esc(feelShort)+'"</em>. Pusti ga da se spusti za jedan nivo. Ne uklanjaj, samo smanji intenzitet.',
-     speak:'Sad pomeri to osecanje za jedan stepen. Znas taj osecaj — '+feelShort+'. Pusti ga da se spusti za jedan nivo. Ne uklanjaj, samo smanji.',dur:20},
+    {text:step2text,
+     speak:step2speak,dur:20},
     {text:'Izgovori naglas:<br><br><em>"'+esc(S.e_gen)+'"</em>',
      speak:'Izgovori naglas. '+S.e_gen,dur:15}
   ];
@@ -550,7 +556,9 @@ function renderBody3(){
 function renderShame(){
   root.innerHTML='';var s=h('div','sf');var inner=h('div','sfi fi');inner.style.justifyContent='flex-start';inner.style.paddingTop='0';
   makeTopbar(inner);inner.appendChild(bar(7));
-  inner.appendChild(h('div','label','Shame Attack'));
+  var isNTF=(AI.shame_type==='ntf');
+  var screenLabel=isNTF?'Eksperiment tolerancije':'Shame Attack';
+  inner.appendChild(h('div','label',screenLabel));
   var q='Ovo je rad u realnosti. Sve pre ovoga je bilo u glavi.';
   inner.appendChild(h('p','therapist',q));speak(q);
   var task=h('div','insight');task.innerHTML='<div class="il">Tvoj eksperiment</div><div class="it">'+esc(S.shame_task)+'</div>';inner.appendChild(task);
@@ -621,7 +629,7 @@ function renderHistory(){
     if(ses.done)badges+='<span class="badge" style="background:rgba(72,202,193,0.12);color:#48CAC1">SA završen</span>';
     var ePreview=ses.e?'<div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(26,26,46,0.07)">'+
       '<div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#48CAC1;margin-bottom:4px;font-weight:600">Novo uverenje</div>'+
-      '<div style="font-size:13px;color:#1a1a2e;line-height:1.5;font-style:italic">„'+esc(ses.e).substring(0,100)+(ses.e.length>100?'…':'')+'“</div>'+
+      '<div style="font-size:13px;color:#1a1a2e;line-height:1.5;font-style:italic">„'+esc(ses.e)+'“</div>'+
       '</div>':'';
     item.innerHTML=
       '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">'+
