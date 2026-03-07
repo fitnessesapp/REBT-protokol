@@ -5,7 +5,7 @@ exports.handler = async (event) => {
 
   const API_KEY = process.env.GEMINI_API_KEY;
   if (!API_KEY) {
-    return { statusCode: 500, body: JSON.stringify({ error: 'No TTS API key' }) };
+    return { statusCode: 500, body: JSON.stringify({ error: 'No API key' }) };
   }
 
   try {
@@ -14,36 +14,34 @@ exports.handler = async (event) => {
       return { statusCode: 400, body: JSON.stringify({ error: 'No text' }) };
     }
 
+    const prompt = 'Calm, warm female psychotherapist. Slow and reassuring. ' + text.trim();
+
     const response = await fetch(
-      `https://texttospeech.googleapis.com/v1beta1/text:synthesize?key=${API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro-preview-tts:generateContent?key=${API_KEY}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          input: {
-            text: text.trim(),
-            prompt: 'Calm, warm male psychotherapist. Slow and reassuring.'
-          },
-          voice: {
-            languageCode: 'sr-rs',
-            name: 'Charon',
-            modelName: 'gemini-2.5-pro-tts'
-          },
-          audioConfig: {
-            audioEncoding: 'MP3',
-            speakingRate: 0.95,
-            pitch: 0
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: {
+            responseModalities: ['AUDIO'],
+            speechConfig: {
+              voiceConfig: {
+                prebuiltVoiceConfig: { voiceName: 'Aoede' }
+              }
+            }
           }
         })
       }
     );
 
     const data = await response.json();
+    const audioData = data?.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
 
-    if (!response.ok || !data.audioContent) {
+    if (!response.ok || !audioData) {
       return {
         statusCode: 502,
-        body: JSON.stringify({ error: data.error?.message || 'TTS failed', googleStatus: response.status, googleResponse: JSON.stringify(data).substring(0, 500) })
+        body: JSON.stringify({ error: data.error?.message || 'TTS failed', detail: JSON.stringify(data).substring(0, 300) })
       };
     }
 
@@ -53,7 +51,7 @@ exports.handler = async (event) => {
         'Content-Type': 'audio/mpeg',
         'Cache-Control': 'public, max-age=3600'
       },
-      body: data.audioContent,
+      body: audioData,
       isBase64Encoded: true
     };
 
