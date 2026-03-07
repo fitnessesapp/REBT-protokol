@@ -1,3 +1,998 @@
-﻿
-(index):361 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio
-(anonymous)	@	(index):361
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="REBT">
+<meta name="theme-color" content="#48CAC1">
+<title>REBT Protocol</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0}
+body{
+  background:linear-gradient(180deg,#48CAC1 0%,#5E82C8 55%,#9356C4 100%);
+  background-attachment:fixed;
+  font-family:'DM Sans',sans-serif;color:#1a1a2e;overflow-x:hidden;
+  padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom);
+  min-height:100vh;
+}
+button{font-family:'DM Sans',sans-serif;outline:none;cursor:pointer}
+button:active{opacity:0.8}
+textarea{font-family:'DM Sans',sans-serif;outline:none;resize:none;-webkit-appearance:none}
+
+@keyframes breathe{
+  0%,100%{transform:scale(1);box-shadow:0 0 50px rgba(72,202,193,0.5)}
+  50%{transform:scale(1.05);box-shadow:0 0 80px rgba(72,202,193,0.7)}
+}
+@keyframes fadeIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes dots{0%{content:''}33%{content:'.'}66%{content:'..'}100%{content:'...'}}
+@keyframes speakPulse{0%,100%{opacity:0.6}50%{opacity:1}}
+
+.app{max-width:430px;margin:0 auto;position:relative;min-height:100vh;min-height:100dvh}
+#root{position:relative;z-index:1}
+
+/* --- SCREENS --- */
+.sc{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;min-height:100dvh;padding:24px;text-align:center}
+.sf{padding:0;min-height:100vh;min-height:100dvh;display:flex;flex-direction:column}
+.sfi{flex:1;display:flex;flex-direction:column;justify-content:center;padding:16px 20px 60px}
+.fi{animation:fadeIn 0.5s ease}
+
+/* --- TOPBAR (header style matching Fitnesses) --- */
+.topbar{
+  background:transparent;
+  display:flex;justify-content:space-between;align-items:center;
+  padding:14px 20px;margin-bottom:0;
+}
+.home-btn{
+  background:rgba(0,0,0,0.15);border:none;border-radius:50%;
+  width:36px;height:36px;display:flex;align-items:center;justify-content:center;
+  color:#fff;font-size:20px;font-weight:300;
+}
+.audio-tog{
+  background:rgba(0,0,0,0.15);border:1px solid rgba(255,255,255,0.3);
+  border-radius:20px;padding:5px 12px;font-size:11px;color:rgba(255,255,255,0.7);letter-spacing:1px;transition:all 0.2s;
+}
+.audio-tog.on{background:rgba(255,255,255,0.2);border-color:rgba(255,255,255,0.6);color:#fff}
+.speaking-indicator{display:inline-block;font-size:10px;color:#fff;margin-left:8px;animation:speakPulse 1s infinite}
+
+/* --- TYPOGRAPHY --- */
+.label{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,0.9);margin-bottom:14px;font-weight:600}
+.ldim{font-size:12px;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,0.75);margin-bottom:10px}
+.t1{font-family:'Instrument Serif',Georgia,serif;font-size:32px;font-weight:400;line-height:1.2;color:#fff}
+.t2{font-family:'Instrument Serif',Georgia,serif;font-size:24px;font-weight:400;line-height:1.35;margin-bottom:8px;color:#fff}
+.hint{font-size:13px;color:rgba(255,255,255,0.8);line-height:1.7}
+.therapist{font-family:'Instrument Serif',Georgia,serif;font-size:19px;color:#fff;line-height:1.6;font-style:italic;margin-bottom:20px}
+
+/* --- STEP BAR --- */
+.step-bar{display:flex;gap:6px;justify-content:center;margin-bottom:20px;align-items:center}
+.step-seg{border-radius:50%;transition:all 0.4s ease}
+
+/* --- HOME BUTTON --- */
+.panic-btn{
+  width:170px;height:170px;border-radius:50%;border:none;
+  background:linear-gradient(135deg,#48CAC1 0%,#5E82C8 100%);
+  box-shadow:0 8px 40px rgba(72,202,193,0.5),0 0 0 8px rgba(255,255,255,0.15);
+  display:flex;align-items:center;justify-content:center;
+  animation:breathe 3s ease-in-out infinite;
+  font-size:15px;font-weight:700;color:#fff;letter-spacing:2px;text-transform:uppercase;
+}
+
+/* --- INPUT --- */
+.ta{
+  width:100%;background:#fff;border:1.5px solid rgba(72,202,193,0.3);
+  border-radius:14px;padding:14px 16px;color:#1a1a2e !important;font-size:15px;
+  line-height:1.7;min-height:100px;margin-bottom:4px;transition:border-color 0.3s,box-shadow 0.3s;
+  box-shadow:0 2px 8px rgba(0,0,0,0.06);
+}
+.ta:focus{border-color:#48CAC1;box-shadow:0 2px 14px rgba(72,202,193,0.2)}
+.ta::placeholder{color:rgba(26,26,46,0.3)}
+.dict-hint{font-size:11px;color:rgba(255,255,255,0.5);margin-bottom:14px;text-align:right}
+
+/* --- BUTTONS --- */
+.bp{
+  background:linear-gradient(135deg,#48CAC1,#5E82C8);
+  border:none;border-radius:14px;padding:16px 28px;
+  font-size:14px;color:#fff;font-weight:700;width:100%;margin-top:4px;
+  letter-spacing:0.5px;box-shadow:0 4px 18px rgba(72,202,193,0.4);
+  text-transform:uppercase;
+}
+.bp:disabled{opacity:0.35;cursor:default;box-shadow:none}
+.bs{
+  background:rgba(255,255,255,0.15);border:1.5px solid rgba(255,255,255,0.4);
+  border-radius:14px;padding:14px 24px;font-size:13px;color:#fff;width:100%;margin-top:8px;
+}
+.bg{
+  background:#fff;border:none;border-radius:14px;padding:16px 28px;
+  font-size:14px;color:#48CAC1;font-weight:700;width:100%;margin-top:4px;
+  box-shadow:0 4px 16px rgba(0,0,0,0.12);text-transform:uppercase;letter-spacing:0.5px;
+}
+
+/* --- CARDS --- */
+.insight{
+  background:#fff;border-radius:16px;padding:20px;margin:12px 0;
+  text-align:left;box-shadow:0 4px 20px rgba(0,0,0,0.1);
+}
+.insight .il{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#48CAC1;margin-bottom:10px;font-weight:600}
+.insight .it{font-family:'Instrument Serif',Georgia,serif;font-size:17px;color:#1a1a2e;line-height:1.6;font-style:italic}
+
+.ctx{background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);border-radius:14px;padding:16px 18px;margin:14px 0;text-align:left}
+.ctx .cl{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.7);margin-bottom:8px;font-weight:600}
+.ctx .cv{font-size:13px;color:rgba(255,255,255,0.85);line-height:1.6}
+
+.dcard{background:#fff;border-radius:16px;padding:20px;margin-bottom:14px;text-align:left;box-shadow:0 4px 20px rgba(0,0,0,0.1)}
+.dcard .dt{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#48CAC1;margin-bottom:10px;font-weight:600}
+.dcard .dq{font-family:'Instrument Serif',Georgia,serif;font-size:17px;color:#1a1a2e;line-height:1.55;margin-bottom:14px}
+.dcard .da{font-size:13px;color:#555;line-height:1.7;animation:fadeUp 0.3s ease}
+
+/* --- YES/NO --- */
+.ynr{display:flex;gap:10px;margin-bottom:8px}
+.yn{
+  flex:1;padding:11px;border-radius:10px;font-size:13px;font-weight:600;
+  transition:all 0.25s ease;background:#f5f5f8;border:1.5px solid #e0e0ea;color:#888;
+}
+.yn.on{background:linear-gradient(135deg,#48CAC1,#5E82C8);border-color:transparent;color:#fff}
+
+/* --- BELIEFS --- */
+.old-b{background:#fff5f5;border:1px solid rgba(200,80,80,0.12);border-radius:16px;padding:20px;text-align:left;margin-bottom:10px}
+.new-b{background:#f0fffe;border:1px solid rgba(72,202,193,0.2);border-radius:16px;padding:20px;text-align:left;margin-bottom:16px}
+
+/* --- RATING GRID --- */
+.rg{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;max-width:320px;margin:0 auto 16px}
+.rb{
+  width:100%;aspect-ratio:1;border-radius:12px;cursor:pointer;font-size:18px;
+  transition:all 0.2s ease;font-family:'DM Sans',sans-serif;
+  border:1.5px solid rgba(255,255,255,0.4);background:rgba(255,255,255,0.2);
+  color:#fff;font-weight:400;
+}
+.rb.sel{border:2px solid #fff;background:#fff;color:#1a1a2e;font-weight:700;transform:scale(1.1)}
+
+/* --- BODY OPTS --- */
+.body-opt{
+  background:rgba(255,255,255,0.15);border:1.5px solid rgba(255,255,255,0.3);
+  border-radius:14px;padding:14px 18px;margin-bottom:8px;
+  font-size:14px;color:#fff;text-align:left;transition:all 0.25s ease;
+}
+.body-opt.sel{background:#fff;border-color:#fff;color:#1a1a2e;font-weight:500}
+
+/* --- TIMER --- */
+.timer-ring{position:relative;width:160px;height:160px;margin:0 auto 30px}
+.timer-num{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:32px;font-weight:300;letter-spacing:2px;color:#fff}
+
+/* --- HISTORY --- */
+.hist-item{
+  background:#fff;border-radius:14px;padding:16px 18px;margin-bottom:10px;
+  text-align:left;cursor:pointer;box-shadow:0 3px 12px rgba(0,0,0,0.1);
+}
+.badge{display:inline-block;background:rgba(255,255,255,0.25);color:#fff;font-size:11px;padding:4px 10px;border-radius:8px;font-weight:600;margin-right:6px}
+.hist-item .badge{background:rgba(72,202,193,0.12);color:#48CAC1}
+.badge-warn{background:rgba(200,160,80,0.15)!important;color:#C8A040!important}
+
+/* --- LOADING --- */
+.loading-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;min-height:100dvh;padding:24px;text-align:center}
+.loading-orb{width:60px;height:60px;border-radius:50%;background:rgba(255,255,255,0.3);animation:breathe 2s ease-in-out infinite;margin-bottom:24px}
+.loading-text::after{content:'';animation:dots 1.5s infinite steps(4)}
+
+/* --- PENDING SHAME ATTACK CARD ON HOME --- */
+.shame-pending-card{
+  background:rgba(255,255,255,0.15);border:1.5px solid rgba(255,255,255,0.3);
+  border-radius:16px;padding:18px 20px;width:100%;text-align:left;margin-bottom:20px;color:#fff;
+}
+
+/* --- ZASTO OVO --- */
+.why-toggle{font-size:11px;color:rgba(255,255,255,0.5);cursor:pointer;text-decoration:underline;text-underline-offset:3px;display:block;text-align:center;margin-bottom:16px;background:none;border:none;padding:0}
+.why-toggle:hover{color:rgba(255,255,255,0.8)}
+.why-box{background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:12px;padding:14px 16px;margin-bottom:16px;display:none}
+.why-box p{font-size:13px;color:rgba(255,255,255,0.85);line-height:1.7;font-style:italic}
+
+/* --- DASHBOARD --- */
+.dash-card{background:#fff;border-radius:16px;padding:18px 20px;margin-bottom:14px;box-shadow:0 4px 20px rgba(0,0,0,0.1)}
+.dash-title{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#48CAC1;margin-bottom:14px;font-weight:600}
+.dash-stat{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.dash-stat-label{font-size:12px;color:rgba(26,26,46,0.5)}
+.dash-stat-val{font-size:16px;font-weight:700;color:#1a1a2e}
+.dash-stat-val.good{color:#48CAC1}
+.dash-stat-val.warn{color:#C8A040}
+.spark{display:flex;align-items:flex-end;gap:3px;height:40px;margin-top:10px}
+.spark-bar{flex:1;border-radius:3px 3px 0 0;min-width:8px;transition:all 0.3s}
+
+/* --- NESSA CHAT BUBBLES --- */
+@keyframes typingBounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-7px)}}
+@keyframes bubblePop{from{opacity:0;transform:translateY(6px) scale(0.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+
+.nessa-row{display:flex;align-items:flex-end;gap:10px;margin-bottom:18px;animation:bubblePop 0.35s ease}
+.nessa-av{width:36px;height:36px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid rgba(255,255,255,0.35);background:#fff}
+.nessa-bubble{
+  background:rgba(255,255,255,0.18);
+  border:1px solid rgba(255,255,255,0.28);
+  border-radius:18px 18px 18px 4px;
+  padding:14px 18px;
+  max-width:calc(100% - 52px);
+  font-family:'Instrument Serif',Georgia,serif;
+  font-size:17px;color:#fff;line-height:1.6;font-style:italic;
+}
+.nessa-bubble.small{font-family:'DM Sans',sans-serif;font-size:14px;font-style:normal}
+.nessa-name{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.5);font-weight:600;margin-bottom:4px;margin-left:46px;font-family:'DM Sans',sans-serif}
+
+.typing-row{display:flex;align-items:flex-end;gap:10px;margin-bottom:18px}
+.typing-bubble{background:rgba(255,255,255,0.18);border:1px solid rgba(255,255,255,0.28);border-radius:18px 18px 18px 4px;padding:14px 16px;display:flex;gap:5px;align-items:center}
+.tdot{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,0.7);animation:typingBounce 1.1s ease-in-out infinite}
+.tdot:nth-child(2){animation-delay:0.18s}
+.tdot:nth-child(3){animation-delay:0.36s}
+
+/* Home Nessa intro */
+.home-nessa{display:flex;flex-direction:column;align-items:center;margin-bottom:28px}
+.home-av{width:72px;height:72px;border-radius:50%;object-fit:cover;border:3px solid rgba(255,255,255,0.4);box-shadow:0 4px 24px rgba(0,0,0,0.2);margin-bottom:10px}
+.home-av-name{font-size:12px;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,0.7);font-weight:600}
+</style>
+</head>
+<body>
+<div class="app"><div class="amb"></div><div id="root"></div></div>
+
+<script>
+var S={a:'',b:'',c_feel:'',c_do:'',d:[0,0,0],e_gen:'',rate1:0,bodyWhere:'',rate2:0,shame_task:'',shame_expect:'',reflections:[]};
+var AI={};
+var root=document.getElementById('root');
+var AUDIO=true;
+
+function makeWhy(text){
+  var btn=h('button','why-toggle','Zašto ovaj korak?');
+  var box=h('div','why-box');box.innerHTML='<p>'+text+'</p>';
+  btn.onclick=function(){
+    var open=box.style.display==='block';
+    box.style.display=open?'none':'block';
+    btn.textContent=open?'Zašto ovaj korak?':'Zatvori';
+  };
+  var wrap=h('div','');wrap.appendChild(btn);wrap.appendChild(box);return wrap;
+}
+
+function renderDashboard(inner,hi){
+  if(!hi||hi.length<2)return;
+  var card=h('div','dash-card');
+  var deltas=hi.map(function(s){return s.r1-s.r2}).filter(function(d){return !isNaN(d)});
+  var avgDelta=deltas.length?(deltas.reduce(function(a,b){return a+b},0)/deltas.length).toFixed(1):0;
+  var streak=0;for(var i=0;i<hi.length;i++){if(hi[i].r2<hi[i].r1)streak++;else break;}
+  var saTotal=hi.filter(function(s){return s.shame}).length;
+  var saDone=hi.filter(function(s){return s.done}).length;
+  var saPct=saTotal?Math.round(saDone/saTotal*100):null;
+
+  var html='<div class="dash-title">Pregled napretka</div>';
+  html+='<div class="dash-stat"><span class="dash-stat-label">Prosečno smanjenje žudnje</span><span class="dash-stat-val '+(avgDelta>0?'good':'')+'">'+( avgDelta>0?'−':'')+Math.abs(avgDelta)+'</span></div>';
+  html+='<div class="dash-stat"><span class="dash-stat-label">Uzastopne sesije s padom</span><span class="dash-stat-val '+(streak>=3?'good':streak>=1?'':'warn')+'">'+streak+'</span></div>';
+  if(saPct!==null)html+='<div class="dash-stat"><span class="dash-stat-label">Eksperimenti završeni</span><span class="dash-stat-val '+(saPct>=50?'good':'warn')+'">'+saDone+'/'+saTotal+' ('+saPct+'%)</span></div>';
+  html+='<div class="dash-stat"><span class="dash-stat-label">Ukupno sesija</span><span class="dash-stat-val">'+hi.length+'</span></div>';
+
+  // Sparkline — sve sesije
+  var sparkMax=Math.max.apply(null,deltas.map(Math.abs))||1;
+  html+='<div style="font-size:11px;color:rgba(26,26,46,0.4);margin-top:12px;margin-bottom:6px">Pad žudnje po sesiji (najnovije desno)</div>';
+  html+='<div class="spark">';
+  var sparkData=hi.slice().reverse().slice(-20); // max 20 bars
+  sparkData.forEach(function(ses){
+    var d=ses.r1-ses.r2;
+    var pct=Math.abs(d)/sparkMax*100;
+    var col=d>0?'#48CAC1':d===0?'rgba(26,26,46,0.15)':'rgba(200,80,80,0.4)';
+    html+='<div class="spark-bar" style="height:'+Math.max(pct,8)+'%;background:'+col+'" title="'+ses.r1+'→'+ses.r2+'"></div>';
+  });
+  html+='</div>';
+  card.innerHTML=html;
+  inner.appendChild(card);
+}
+
+function h(t,c,html){var e=document.createElement(t);if(c)e.className=c;if(html!==undefined)e.innerHTML=html;return e}
+function esc(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML}
+
+/* --- TTS (Google Cloud) --- */
+var audioQueue=[];
+var audioPlaying=false;
+var _audioCtx=null;
+var _currentSource=null;
+var _pendingGreeting=null; // queued before user gesture
+
+function getAudioCtx(){
+  if(!_audioCtx)_audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+  return _audioCtx;
+}
+
+// Resume AudioContext + play pending greeting on first user gesture
+function _unlockAudio(){
+  var ctx=getAudioCtx();
+  if(ctx.state==='suspended'){
+    ctx.resume().then(function(){
+      if(_pendingGreeting){var g=_pendingGreeting;_pendingGreeting=null;speak(g);}
+    });
+  } else {
+    if(_pendingGreeting){var g=_pendingGreeting;_pendingGreeting=null;speak(g);}
+  }
+  document.removeEventListener('touchstart',_unlockAudio);
+  document.removeEventListener('mousedown',_unlockAudio);
+  document.removeEventListener('keydown',_unlockAudio);
+}
+document.addEventListener('touchstart',_unlockAudio,{once:true});
+document.addEventListener('mousedown',_unlockAudio,{once:true});
+document.addEventListener('keydown',_unlockAudio,{once:true});
+function cleanText(text){
+  return text.replace(/<[^>]*>/g,'').replace(/—/g,', ').replace(/→/g,' u ').replace(/„|“/g,'"').trim();
+}
+function splitSentences(text){
+  // split on sentence endings, keep chunk under 200 chars
+  var parts=text.match(/[^.!?]+[.!?\s]*|[^.!?]+$/g)||[text];
+  var chunks=[],cur='';
+  parts.forEach(function(p){
+    if((cur+p).length>200&&cur){chunks.push(cur.trim());cur=p;}
+    else cur+=p;
+  });
+  if(cur.trim())chunks.push(cur.trim());
+  return chunks.filter(Boolean);
+}
+
+async function fetchTTSAudio(text){
+  var resp=await fetch('/api/tts',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({text:text})
+  });
+  if(!resp.ok)throw new Error('TTS HTTP '+resp.status);
+  var arrayBuf=await resp.arrayBuffer();
+  return arrayBuf;
+}
+
+function speak(text){
+  if(!AUDIO)return;
+  stopAudio();
+  var clean=cleanText(text);
+  if(!clean)return;
+  var sentences=splitSentences(clean);
+  if(!sentences.length)return;
+  audioQueue=sentences.slice();
+  audioPlaying=true;
+  updateSI(true);
+  // prefetch first two
+  var prefetched={};
+  function prefetch(idx){
+    if(idx<audioQueue.length&&!prefetched[idx]){
+      prefetched[idx]='loading';
+      fetchTTSAudio(audioQueue[idx]).then(function(buf){
+        prefetched[idx]=buf;
+      }).catch(function(){prefetched[idx]='error';});
+    }
+  }
+  prefetch(0);prefetch(1);
+
+  var idx=0;
+  function playIdx(){
+    if(!audioPlaying||idx>=audioQueue.length){
+      audioPlaying=false;updateSI(false);return;
+    }
+    prefetch(idx+2); // prefetch ahead
+    function waitAndPlay(){
+      if(prefetched[idx]instanceof ArrayBuffer){
+        var ctx=getAudioCtx();
+        ctx.decodeAudioData(prefetched[idx].slice(0),function(decoded){
+          if(!audioPlaying)return;
+          var src=ctx.createBufferSource();
+          src.buffer=decoded;
+          src.connect(ctx.destination);
+          _currentSource=src;
+          src.onended=function(){idx++;setTimeout(playIdx,60);};
+          src.start(0);
+        },function(){idx++;playIdx();});
+      } else if(prefetched[idx]==='error'){
+        idx++;playIdx();
+      } else {
+        setTimeout(waitAndPlay,50); // still loading
+      }
+    }
+    waitAndPlay();
+  }
+  playIdx();
+}
+
+function stopAudio(){
+  audioPlaying=false;
+  audioQueue=[];
+  try{if(_currentSource)_currentSource.stop();}catch(e){}
+  _currentSource=null;
+  updateSI(false);
+}
+function updateSI(on){var el=document.getElementById('speak-ind');if(el)el.style.display=on?'inline-block':'none'}
+
+/* --- AI API via Netlify Function proxy --- */
+async function callAI(prompt) {
+  try {
+    console.log('[AI] Saljem zahtev na novi Gemini backend...');
+
+    const response = await fetch('/api/rebt', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+
+    if (!response.ok) {
+      const errorBody = await response.text();
+      throw new Error('HTTP ' + response.status + ' - ' + errorBody);
+    }
+
+    const data = await response.json();
+    let text = data.content.map(c => c.text || '').join('');
+    text = text.replace(/```json\s*|\s*```/g, '').trim();
+
+    let parsed;
+    try {
+      parsed = JSON.parse(text);
+    } catch(parseErr) {
+      // Pokusaj da popravimo odseceni JSON dodavanjem zatvarajucih znakova
+      let fixed = text;
+      // Zatvori otvorene stringove i objekte
+      const openBraces = (fixed.match(/{/g)||[]).length - (fixed.match(/}/g)||[]).length;
+      if(fixed.match(/"[^"]*$/)){ fixed += '"'; } // zatvori otvoreni string
+      for(let i=0;i<openBraces;i++){ fixed += '}'; }
+      try {
+        parsed = JSON.parse(fixed);
+        console.warn('[AI] JSON bio odsecen, popravljen.');
+      } catch(e2) {
+        throw new Error('Unterminated string in JSON at position ' + parseErr.message);
+      }
+    }
+    console.log('[AI] USPESNO! Odgovorio model:', data.source, parsed);
+    return parsed;
+
+  } catch (err) {
+    console.error('[AI] GRESKA:', err.message || err);
+    return null;
+  }
+}
+
+async function generatePersonalized(){
+  var prompt='Klijent prolazi kroz REBT ABCDE proces za food craving.\n\n'+
+    'A (Situacija): "'+S.a+'"\n'+
+    'B (Iracionalno uverenje): "'+S.b+'"\n'+
+    'C (Emocije): "'+S.c_feel+'"\n'+
+    'C (Sta radi ili sta izbegava): "'+S.c_do+'"\n\n'+
+    'Generisi personalizovane terapeutske odgovore u JSON formatu:\n'+
+    '{\n'+
+    '  "d_logic_q": "Logicko pitanje za OVO KONKRETNO uverenje. STROGO JEDNO PITANJE — jedna recenica, jedna vrednost DA/NE. DA i NE moraju imati jasno suprotno značeje. Ne kombinuj dva pitanja.",\n'+
+    '  "d_logic_yes": "Odgovor ako klijent kaze DA na logicko pitanje (2-3 recenice, koristi klijentove reci iz B)",\n'+
+    '  "d_logic_no": "Odgovor ako kaze NE (1-2 recenice, potvrdi i produbi uvid)",\n'+
+    '  "d_empir_q": "Empirijsko pitanje koje trazi KONKRETNE dokaze za OVO uverenje. STROGO JEDNO PITANJE — jedna recenica, jedna vrednost DA/NE. DA znaci: imam dokaze, NE znaci: nemam dokaze. Ne kombinuj dva pitanja.",\n'+
+    '  "d_empir_yes": "Odgovor ako DA (2-3 recenice)",\n'+
+    '  "d_empir_no": "Odgovor ako NE (1-2 recenice)",\n'+
+    '  "d_func_q": "Funkcionalno pitanje koje se referise na klijentove KONKRETNE emocije i ponasanja iz C. STROGO JEDNO PITANJE — jedna recenica, jedna vrednost DA/NE. DA i NE moraju imati jasno suprotno značeje. Ne kombinuj dva pitanja.",\n'+
+    '  "d_func_yes": "Odgovor ako DA — citiraj klijentove reci iz C da pokaze kontradikciju (2-3 recenice)",\n'+
+    '  "d_func_no": "Odgovor ako NE (1-2 recenice)",\n'+
+    '  "e_new_belief": "Novo racionalno uverenje — DIREKTNO preformulisi klijentovo uverenje iz B. Koristi klijentove tačne reci. Fleksibilna zelja umešto zahteva. MAKSIMALNO 2 kratke recenice.",\n'+
+    '  "shame_type": "ntf ako je motivacija zabava/olaksanje/dosada/uzivanje. attack ako je motivacija strah od neuspeha ili stid/sramota. Samo jedna vrednost: ntf ili attack.",\n'+
+    '  "shame_task": "DVA tipa na osnovu shame_type: (1) ntf — EKSPERIMENT TOLERANCIJE: klijent svesno bira alternativni izvor zadovoljstva iste veceri bez hrane, i belezi kako se osecao. (2) attack — pravi SHAME ATTACK koji napada strah/stid direktno. Konkretan, izvodljiv danas/sutra. 2-3 recenice.",\n'+
+    '  "rei_scene": "NEGATIVNI REI scenario. Klijent zamislija kako POPUSTA i kako se oseca POSLE: krivica, stid, osećaj poraza. Koristi A situaciju i C_do ponasanje. NE opisuj pozitivnu alternativu. 1-2 recenice.",\n'+
+    '  "rei_step2": "REI korak 2 — ZAMENA EMOCIJE po Ellis metodi. Klijent zadrzava ISTI negativni scenario ali menja TIP emocije iz iracionalne u odgovarajucu. Napisi instrukciju sa klijentovim tačnim emocijama iz C: Zadrzi taj isti scenario. Umešto [C emocija], pusti da bude [racionalna alternativa]. 1-2 recenice."\n'+
+    '}\n\nVAZNO: Odgovori SAMO JSON. Bez teksta pre ili posle. Bez backtick-a. Koristi klijentove tačne reci gde god mozes.';
+  return await callAI(prompt);
+}
+
+/* --- UI helpers --- */
+function makeTopbar(container){
+  var tb=h('div','topbar');
+  var hb=h('button','home-btn','×');hb.onclick=function(){stopAudio();renderHome()};
+  var right=h('div','');right.style.cssText='display:flex;align-items:center;gap:8px';
+  var ab=h('button','audio-tog'+(AUDIO?' on':''),'♪ GLAS');
+  ab.onclick=function(){AUDIO=!AUDIO;ab.className='audio-tog'+(AUDIO?' on':'');if(!AUDIO)stopAudio()};
+  var si=h('span','speaking-indicator','●');si.id='speak-ind';si.style.display='none';
+  right.appendChild(si);right.appendChild(ab);tb.appendChild(hb);tb.appendChild(right);
+  container.insertBefore(tb,container.firstChild);
+}
+/* --- NESSA CHAT HELPER --- */
+var NESSA_AV='nessa_avatar.svg';
+function nesAvEl(){var i=document.createElement('img');i.className='nessa-av';i.src=NESSA_AV;i.alt='Nessa';return i}
+
+function showNessaMsg(container, html, opts){
+  // opts: {delay, small, speak: bool, after}
+  opts=opts||{};
+  var delay=opts.delay!=null?opts.delay:1100;
+  var doSpeak=opts.speak!==false;
+
+  // Reserve slot at current position in DOM
+  var slot=document.createElement('div');
+  container.appendChild(slot);
+
+  // typing row inside slot immediately
+  var tr=document.createElement('div');tr.className='typing-row';
+  tr.appendChild(nesAvEl());
+  var tb=document.createElement('div');tb.className='typing-bubble';
+  for(var i=0;i<3;i++){var d=document.createElement('div');d.className='tdot';tb.appendChild(d);}
+  tr.appendChild(tb);slot.appendChild(tr);
+
+  setTimeout(function(){
+    slot.innerHTML='';
+    var name=document.createElement('div');name.className='nessa-name';name.textContent='Nessa';
+    slot.appendChild(name);
+    var row=document.createElement('div');row.className='nessa-row';
+    row.appendChild(nesAvEl());
+    var bub=document.createElement('div');bub.className='nessa-bubble'+(opts.small?' small':'');
+    bub.innerHTML=html;row.appendChild(bub);slot.appendChild(row);
+    if(doSpeak){speak(html.replace(/<[^>]*>/g,''));}
+    if(opts.after)opts.after();
+  },delay);
+}
+
+function makeTa(placeholder,value,onInput){
+  var ta=h('textarea','ta');ta.placeholder=placeholder;ta.value=value||'';
+  ta.oninput=function(){onInput(ta.value.trim())};
+  var hint=h('div','dict-hint','🎤 Mikrofon na tastaturi za diktaciju');
+  var wrap=h('div','');wrap.appendChild(ta);wrap.appendChild(hint);return{wrap:wrap,ta:ta};
+}
+function bar(cur,total){total=total||8;var d=h('div','step-bar');
+  for(var i=0;i<total;i++){var s=h('div','step-seg');
+    var size=i===cur?'10px':'7px';
+    s.style.width=size;s.style.height=size;
+    s.style.background=i===cur?'#fff':i<cur?'rgba(255,255,255,0.6)':'rgba(255,255,255,0.25)';
+    d.appendChild(s);}return d}
+
+function loadHist(){try{return JSON.parse(localStorage.getItem('rebt_hist')||'[]')}catch(e){return[]}}
+function saveSession(){var hi=loadHist();
+  hi.unshift({ts:Date.now(),a:S.a,b:S.b,c_feel:S.c_feel,c_do:S.c_do,e:S.e_gen,r1:S.rate1,r2:S.rate2,shame:S.shame_task,expect:S.shame_expect,actual:'',done:false});
+  localStorage.setItem('rebt_hist',JSON.stringify(hi.slice(0,50)))}
+function getPending(){var hi=loadHist();for(var i=0;i<hi.length;i++){if(!hi[i].done&&hi[i].shame)return{idx:i,s:hi[i]}}return null}
+function completeSA(idx,actual){var hi=loadHist();if(hi[idx]){hi[idx].actual=actual;hi[idx].done=true;localStorage.setItem('rebt_hist',JSON.stringify(hi))}}
+
+function renderHome(){
+  stopAudio();root.innerHTML='';var s=h('div','sc fi');
+  var hi=loadHist(),pending=getPending(),count=hi.length;
+
+  // Nessa avatar + name
+  var hn=h('div','home-nessa');
+  var hav=document.createElement('img');hav.className='home-av';hav.src=NESSA_AV;hav.alt='Nessa';
+  hn.appendChild(hav);
+  hn.appendChild(h('div','home-av-name','Nessa'));
+  s.appendChild(hn);
+
+  // Greeting bubble (typing → message)
+  var greetWrap=h('div','');greetWrap.style.cssText='width:100%;max-width:340px;margin-bottom:28px';
+  s.appendChild(greetWrap);
+
+  var greeting=pending
+    ? 'Čekam te. Jesi li uradio eksperiment?'
+    : 'Zdravo, ja sam Nessa. Šta te muči danas?';
+
+  // Can't autoplay before user gesture — queue it, fires on first tap
+  _pendingGreeting=greeting;
+  showNessaMsg(greetWrap, greeting, {delay:600, speak:false});
+
+  if(count){
+    var cntBadge=h('div','');cntBadge.style.cssText='margin-bottom:16px';
+    cntBadge.innerHTML='<span style="display:inline-block;background:rgba(255,255,255,0.2);color:#fff;font-size:11px;padding:5px 14px;border-radius:20px;font-weight:600">'+count+' sesija</span>';
+    setTimeout(function(){s.insertBefore(cntBadge,s.children[s.children.length-1])},700);
+  }
+
+  if(pending){
+    var pb=h('button','shame-pending-card','');
+    pb.innerHTML='<div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.6);margin-bottom:8px;font-weight:600">Shame attack čeka</div><div style="font-size:14px;color:#fff;line-height:1.5;font-weight:500">Jesi li uradio eksperiment?</div>';
+    pb.onclick=function(){renderReview(pending.idx,pending.s)};
+    s.appendChild(pb);
+  }
+
+  var btn=h('button','panic-btn','Pokreni');
+  btn.onclick=function(){S={a:'',b:'',c_feel:'',c_do:'',d:[0,0,0],e_gen:'',rate1:0,bodyWhere:'',rate2:0,shame_task:'',shame_expect:'',reflections:[]};AI={};renderA()};
+  s.appendChild(btn);
+  if(count>0){var hb=h('button','bs','Istorija');hb.style.marginTop='20px';hb.onclick=renderHistory;s.appendChild(hb)}
+  root.appendChild(s);
+}
+
+function renderA(){
+  root.innerHTML='';var s=h('div','sf');var inner=h('div','sfi fi');
+  makeTopbar(inner);inner.appendChild(bar(0));
+  inner.appendChild(h('div','label','A \u2014 Aktivirajući događaj'));
+  var q='Šta se upravo desilo ili dešava? Opiši situaciju samo činjenicama.';
+  showNessaMsg(inner, q, {delay:400});
+  inner.appendChild(h('p','hint','Npr: "Kasno je, sedim sam, vidim čokoladu u frižideru." ili "Pogledao/la sam se u ogledalo pre izlaska." ili "Trebalo je da počnem zadatak i nisam."<br><br>'));
+  var nb=h('button','bp','Dalje');nb.disabled=!S.a;
+  var t=makeTa('Šta se desilo...',S.a,function(v){S.a=v;nb.disabled=!v});
+  inner.appendChild(t.wrap);nb.onclick=function(){renderB()};inner.appendChild(nb);
+  s.appendChild(inner);root.appendChild(s);t.ta.focus();
+}
+
+function renderB(){
+  root.innerHTML='';var s=h('div','sf');var inner=h('div','sfi fi');
+  makeTopbar(inner);inner.appendChild(bar(1));
+  inner.appendChild(h('div','label','B \u2014 Uverenje'));
+  var ib=h('div','insight');ib.innerHTML='<div class="il">Situacija</div><div class="it">"'+esc(S.a)+'"</div>';inner.appendChild(ib);
+  var q='Kad se to desilo, šta si rekao sebi? Koji glas se javio?';
+  showNessaMsg(inner, q, {delay:400});
+  var nb=h('button','bp','Dalje');nb.disabled=!S.b;
+  var t=makeTa('Šta ti kažeš sebi...',S.b,function(v){S.b=v;nb.disabled=!v});
+  inner.appendChild(t.wrap);nb.onclick=function(){renderC()};
+  var bb=h('button','bs','Nazad');bb.onclick=function(){renderA()};
+  inner.appendChild(nb);inner.appendChild(bb);s.appendChild(inner);root.appendChild(s);t.ta.focus();
+}
+
+function renderC(){
+  root.innerHTML='';var s=h('div','sf');var inner=h('div','sfi fi');inner.style.justifyContent='flex-start';inner.style.paddingTop='0';
+  makeTopbar(inner);inner.appendChild(bar(2));
+  inner.appendChild(h('div','label','C \u2014 Posledice'));
+  var ib=h('div','insight');ib.innerHTML='<div class="il">Uverenje</div><div class="it">"'+esc(S.b)+'"</div>';inner.appendChild(ib);
+  var q1='Kako se osećaš kad ti to prođe kroz glavu? Šta osetiš u telu?';
+  showNessaMsg(inner, q1, {delay:400});
+  var nb=h('button','bp','Dalje');function ck(){nb.disabled=!(S.c_feel&&S.c_do)}
+  var t1=makeTa('Emocije i telesne senzacije...',S.c_feel,function(v){S.c_feel=v;ck()});inner.appendChild(t1.wrap);
+  var q2='Zbog ovog uverenja — šta radiš, ili šta izbegavaš?';
+  showNessaMsg(inner, q2, {delay:1800, speak:false});
+  var t2=makeTa('Šta radiš ili šta izbegavaš...',S.c_do,function(v){S.c_do=v;ck()});inner.appendChild(t2.wrap);
+  nb.disabled=!(S.c_feel&&S.c_do);
+  nb.onclick=function(){renderLoading()};
+  var bb=h('button','bs','Nazad');bb.onclick=function(){renderB()};
+  inner.appendChild(nb);inner.appendChild(bb);s.appendChild(inner);root.appendChild(s);
+}
+
+function renderLoading(){
+  root.innerHTML='';
+  var s=h('div','loading-screen fi');
+  s.innerHTML='<div class="loading-orb"></div>'+
+    '<p class="therapist" style="margin-bottom:8px">Nessa analizira tvoje uverenje<span class="loading-text"></span></p>'+
+    '<p class="hint">Pripremam personalizovana pitanja i odgovore za tvoju situaciju.</p>';
+  root.appendChild(s);
+
+  generatePersonalized().then(function(data){
+    if(data){
+      AI=data;
+      S.e_gen=data.e_new_belief||'';
+      S.shame_task=data.shame_task||'';
+      renderD();
+    }else{
+      AI={d_logic_q:'Da li LOGICKI sledi da moras "'+S.b+'"?',d_logic_yes:'Razmisli — zelja i obaveza nisu isto.',d_logic_no:'Tačno. Zelja postoji, ali nije komanda.',
+        d_empir_q:'Koji su dokazi da ne mozes da izdrzzis ovo?',d_empir_yes:'Ako si ikad izdrzao, imas dokaz.',d_empir_no:'Nema dokaza. Neprijatno nije nepodnosljivo.',
+        d_func_q:'Da li te ovo uverenje priblizava cilju?',d_func_yes:'Pogledaj C — da li to izgleda kao pomoc?',d_func_no:'Tačno. Ne sluzi ti.',
+        e_new_belief:'Mogu da izaberem drugu reakciju na ovu situaciju.',shame_task:'Uradi mali eksperiment vezan za tvoju situaciju.',rei_scene:'Zamisli svoju situaciju.'};
+      S.e_gen=AI.e_new_belief;S.shame_task=AI.shame_task;
+      renderD();
+    }
+  });
+}
+
+function renderD(){
+  root.innerHTML='';var s=h('div','sf');var inner=h('div','sfi fi');inner.style.justifyContent='flex-start';inner.style.paddingTop='0';
+  makeTopbar(inner);inner.appendChild(bar(3));
+  inner.appendChild(h('div','label','D \u2014 Osporavanje'));
+  var q='Hajde da testiramo to uverenje.';
+  showNessaMsg(inner, q, {delay:300});
+  inner.appendChild(makeWhy('Iracionalna uverenja opstaju jer ih nikad nismo direktno ispitali. Ova tri testa ih izlažu svetlosti — logičkom, empirijskom i praktičnom. Uverenje koje ne preživi nijedan od njih nema osnove da i dalje upravlja tvojim osećanjima.'));
+  var ib=h('div','insight');ib.innerHTML='<div class="il">Pod lupom</div><div class="it">"'+esc(S.b)+'"</div>';inner.appendChild(ib);
+  var cx=h('div','ctx');
+  cx.innerHTML='<div class="cl">Tvoje C</div><div class="cv"><strong>Osećanja:</strong> '+esc(S.c_feel)+'</div><div class="cv" style="margin-top:6px"><strong>Ponasanje:</strong> '+esc(S.c_do)+'</div>';
+  inner.appendChild(cx);
+
+  var qs=[
+    {type:'Logički test',yLabel:'Da, logički sledi',nLabel:'Ne, ne sledi',q:AI.d_logic_q||'Da li logicki mora da bude tako?',y:AI.d_logic_yes,n:AI.d_logic_no},
+    {type:'Empirijski test',yLabel:'Ima dokaza',nLabel:'Nema dokaza',q:AI.d_empir_q||'Koji su dokazi?',y:AI.d_empir_yes,n:AI.d_empir_no},
+    {type:'Funkcionalni test',yLabel:'Da, pomaže',nLabel:'Ne, ne pomaže',q:AI.d_func_q||'Da li ti ovo pomaze?',y:AI.d_func_yes,n:AI.d_func_no}
+  ];
+  var ans=[false,false,false];
+  qs.forEach(function(qq,idx){
+    var card=h('div','dcard');
+    card.innerHTML='<div class="dt">'+qq.type+'</div><div class="dq">'+esc(qq.q)+'</div>';
+    var row=h('div','ynr'),yb=h('button','yn',qq.yLabel),nb2=h('button','yn',qq.nLabel),fb=h('div','da');fb.style.display='none';
+    yb.onclick=function(){yb.className='yn on';nb2.className='yn';
+      fb.innerHTML='<p style="margin-bottom:12px">'+esc(qq.y)+'</p>'+
+        '<textarea class="ta" placeholder="Tvoja misao (opciono)..." style="min-height:64px;font-size:13px;margin-bottom:0"></textarea>'+
+        '<div class="dict-hint">🎤 Mikrofon na tastaturi za diktaciju</div>';
+      fb.style.display='block';speak(qq.y);ans[idx]=true;ck();
+      var rta=fb.querySelector('textarea');if(rta){rta.oninput=function(){if(rta.value.trim()){S.reflections[idx]={q:qq.q,a:rta.value.trim()}}}}};
+    nb2.onclick=function(){nb2.className='yn on';yb.className='yn';fb.innerHTML='<p>'+esc(qq.n)+'</p>';fb.style.display='block';speak(qq.n);ans[idx]=true;ck()};
+    row.appendChild(yb);row.appendChild(nb2);card.appendChild(row);card.appendChild(fb);inner.appendChild(card);
+  });
+  var nb=h('button','bp','Dalje');nb.disabled=true;nb.id='dnb';
+  nb.onclick=function(){renderE()};
+  var bb=h('button','bs','Nazad');bb.onclick=function(){renderC()};
+  inner.appendChild(nb);inner.appendChild(bb);
+  function ck(){if(ans[0]&&ans[1]&&ans[2])document.getElementById('dnb').disabled=false}
+  s.appendChild(inner);root.appendChild(s);
+}
+
+function renderE(){
+  root.innerHTML='';var s=h('div','sf');var inner=h('div','sfi fi');inner.style.justifyContent='flex-start';inner.style.paddingTop='0';
+  makeTopbar(inner);inner.appendChild(bar(4));
+  inner.appendChild(h('div','label','E \u2014 Novo uverenje'));
+  var q='Staro uverenje palo je na sva tri testa. Evo šta stavljamo umesto njega.';
+  showNessaMsg(inner, q, {delay:400});
+  var ob=h('div','old-b');
+  ob.innerHTML='<div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(200,80,80,0.5);margin-bottom:10px;font-weight:600">Staro</div><div style="font-family:Instrument Serif,Georgia,serif;font-size:17px;color:rgba(180,60,60,0.5);line-height:1.6;font-style:italic;text-decoration:line-through">"'+esc(S.b)+'"</div>';
+  inner.appendChild(ob);
+  inner.appendChild(h('div','','<div style="text-align:center;font-size:20px;color:rgba(72,202,193,0.4);margin:10px 0">\u2193</div>'));
+  var nb2=h('div','new-b');
+  nb2.innerHTML='<div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#48CAC1;margin-bottom:10px;font-weight:600">Novo</div><div style="font-family:Instrument Serif,Georgia,serif;font-size:17px;color:#1a1a2e;line-height:1.7;font-style:italic">"'+esc(S.e_gen)+'"</div>';
+  inner.appendChild(nb2);
+  setTimeout(function(){speak(S.e_gen)},2200);
+  inner.appendChild(h('p','hint','Prilagodi ako želiš. Ako odgovara, ostavi prazno.<br><br>'));
+  var t=makeTa('Tvoja verzija (opciono)...','',function(v){if(v)S.e_gen=v;else S.e_gen=AI.e_new_belief||''});
+  t.ta.style.minHeight='70px';inner.appendChild(t.wrap);
+  var nb=h('button','bg','Dalje \u2014 Telesni rad');nb.onclick=function(){renderBody1()};
+  var bb=h('button','bs','Nazad');bb.onclick=function(){renderD()};
+  inner.appendChild(nb);inner.appendChild(bb);s.appendChild(inner);root.appendChild(s);
+}
+
+function renderBody1(){
+  root.innerHTML='';var s=h('div','sf');var inner=h('div','sfi fi');
+  makeTopbar(inner);inner.appendChild(bar(5));
+  inner.appendChild(h('div','label','Telo \u2014 Intenzitet'));
+  var q='Koliko je jak taj osećaj ili pritisak sad? Daj mu broj.';
+  showNessaMsg(inner, q, {delay:400});
+  inner.appendChild(makeWhy('Merimo intenzitet pre i posle — da bi tvoj nervni sistem video konkretan dokaz da talas osećaja zaista prolazi. Broj nije procena vrednosti, samo termometar.'));
+  var grid=h('div','rg');var nb=h('button','bp','Dalje');nb.disabled=true;
+  for(var n=1;n<=10;n++){(function(n){var b=h('button','rb');b.textContent=n;
+    b.onclick=function(){S.rate1=n;grid.querySelectorAll('.rb').forEach(function(x){x.className='rb';x.style.background=''});
+    b.className='rb sel';b.style.background='rgba(72,202,193,'+(.3+n/10*.6)+')';nb.disabled=false};grid.appendChild(b)})(n)}
+  inner.appendChild(grid);nb.onclick=function(){renderBody2()};inner.appendChild(nb);
+  s.appendChild(inner);root.appendChild(s);
+}
+
+function renderBody2(){
+  root.innerHTML='';var s=h('div','sf');var inner=h('div','sfi fi');
+  makeTopbar(inner);inner.appendChild(bar(5));
+  inner.appendChild(h('div','label','Telo \u2014 Lokacija'));
+  var q='Gde u telu osetiš taj osećaj?';
+  showNessaMsg(inner, q, {delay:400});
+  var areas=['Stomak \u2014 stezanje, praznina','Grudi \u2014 pritisak','Grlo \u2014 cvor, suva usta','Glava \u2014 misli jure','Vilica \u2014 stiskam zube','Ruke \u2014 nemir'];
+  var nb=h('button','bp','Dalje \u2014 REI');nb.disabled=true;
+  areas.forEach(function(a){var b=h('button','body-opt',a);
+    b.onclick=function(){inner.querySelectorAll('.body-opt').forEach(function(x){x.className='body-opt'});
+    b.className='body-opt sel';S.bodyWhere=a;nb.disabled=false};inner.appendChild(b)});
+  nb.onclick=function(){renderREI()};
+  var bb=h('button','bs','Nazad');bb.onclick=function(){renderBody1()};
+  inner.appendChild(nb);inner.appendChild(bb);s.appendChild(inner);root.appendChild(s);
+}
+
+function renderREI(){
+  root.innerHTML='';var s=h('div','sf');var inner=h('div','sfi fi');inner.style.alignItems='center';
+  makeTopbar(inner);inner.appendChild(bar(6));
+  inner.appendChild(h('div','label','REI \u2014 Zamisljanje'));
+  var bpRaw=S.bodyWhere.split(' \u2014')[0];
+  var bpMap={'Stomak':'stomaku','Grudi':'grudima','Grlo':'grlu','Glava':'glavi','Vilica':'vilici','Ruke':'rukama'};
+  var bp=bpMap[bpRaw]||bpRaw.toLowerCase()+'u';
+  var scene=AI.rei_scene||'Zamisli svoju situaciju.';
+  var feelShort=S.c_feel.length>60?S.c_feel.substring(0,60)+'...':S.c_feel;
+  var step2text=AI.rei_step2||
+    'Zadrži taj isti scenario u glavi. Sada aktivno promeni TIP emocije — umešto <em>"'+esc(feelShort)+'"</em>, pusti da bude nezadovoljstvo ili žaljenje. Isti dogadjaj, drugačija emocija.';
+  var step2speak=AI.rei_step2_speak||
+    'Zadrzite taj isti scenario. Sada aktivno promenite tip emocije — umešto '+feelShort+', pustite da bude nezadovoljstvo ili zaljenje. Isti dogadjaj, drugacija emocija.';
+  var steps=[
+    {text:esc(scene)+' Pusti najgore osećanje. Oseti ga u '+bp+'. <strong>Ostani tu.</strong>',
+     speak:scene+' Pusti najgore osećanje. Oseti ga u '+bp+'. Ostani tu.',dur:25},
+    {text:step2text,
+     speak:step2speak,dur:20},
+    {text:'Izgovori naglas:<br><br><em>"'+esc(S.e_gen)+'"</em>',
+     speak:'Izgovori naglas. '+S.e_gen,dur:15}
+  ];
+  var whyTexts=[
+    'Mozak ne razlikuje dobro zamišljenu scenu od stvarne. Kada svesno zamisliš najgori scenario i ostaneš u njemu — bez bežanja — živčani sistem uči da nije opasan.',
+    'Ellis je otkrio da možeš zadržati isti scenario u glavi ali promeniti TIP emocije — ne njen intenzitet. Iz iracionalne (krivica, panika) u odgovarajuću (nezadovoljstvo, žaljenje). Ovo je mišić koji se vežba.',
+    'Izgovaranje naglas aktivira drugačije putanje u mozgu od puke misli. Novo uverenje počinje da se oseća kao tvoje tek kad ga čuješ sopstvenim glasom.'
+  ];
+  var step=0;
+  var instrBox=h('div','');instrBox.style.cssText='background:rgba(255,255,255,0.15);border:1.5px solid rgba(255,255,255,0.3);border-radius:16px;padding:24px 20px;margin:16px 0;text-align:center;min-height:130px;display:flex;align-items:center;justify-content:center';
+  var instrText=h('p','');instrText.style.cssText='font-family:Instrument Serif,Georgia,serif;font-size:17px;color:#fff;line-height:1.6';
+  instrText.innerHTML=steps[0].text;instrBox.appendChild(instrText);inner.appendChild(instrBox);speak(steps[0].speak);
+  var tl=steps[0].dur,tr=true,ti;var circ=2*Math.PI*70;
+  var ring=h('div','timer-ring');
+  ring.innerHTML='<svg width="160" height="160" style="transform:rotate(-90deg)"><circle cx="80" cy="80" r="70" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="3"/><circle id="rei-c" cx="80" cy="80" r="70" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-dasharray="'+circ+'" stroke-dashoffset="0" style="transition:stroke-dashoffset 1s linear"/></svg><div class="timer-num" id="rei-t">'+tl+'</div>';
+  inner.appendChild(ring);
+  var nb=h('button','bp','');nb.style.display='none';
+  function tick(){if(!tr)return;tl--;document.getElementById('rei-t').textContent=tl;
+    var p=1-tl/steps[step].dur;document.getElementById('rei-c').setAttribute('stroke-dashoffset',circ*(1-p));
+    if(tl<=0){clearInterval(ti);tr=false;
+      if(step<steps.length-1){nb.textContent='Sledeći korak';nb.style.display='block';
+        nb.onclick=function(){step++;tl=steps[step].dur;instrText.innerHTML=steps[step].text;speak(steps[step].speak);
+        document.getElementById('rei-t').textContent=tl;document.getElementById('rei-c').setAttribute('stroke-dashoffset','0');
+        nb.style.display='none';
+        var wb=document.getElementById('rei-why');if(wb){wb.querySelector('.why-box').style.display='none';wb.querySelector('.why-toggle').textContent='Zašto ovaj korak?';wb.querySelector('p').textContent=whyTexts[step];}
+        tr=true;ti=setInterval(tick,1000)}}
+      else{nb.textContent='Proveri osećaj';nb.style.display='block';nb.onclick=function(){renderBody3()}}}}
+  ti=setInterval(tick,1000);inner.appendChild(nb);s.appendChild(inner);root.appendChild(s);
+}
+
+function renderBody3(){
+  root.innerHTML='';var s=h('div','sf');var inner=h('div','sfi fi');
+  makeTopbar(inner);inner.appendChild(bar(6));
+  inner.appendChild(h('div','label','Provera'));
+  var q='Kako je taj osećaj sad?';
+  showNessaMsg(inner, q, {delay:400});
+  inner.appendChild(h('p','hint','Bio/la je <strong>'+S.rate1+'/10</strong> pre REI.<br><br>'));
+  var grid=h('div','rg');
+  var delta=h('p','');delta.style.cssText='font-size:14px;margin:12px 0 20px;text-align:center;display:none';
+  var nb=h('button','bg','Dalje \u2014 Shame Attack');nb.disabled=true;
+  for(var n=1;n<=10;n++){(function(n){var b=h('button','rb');b.textContent=n;
+    b.onclick=function(){S.rate2=n;grid.querySelectorAll('.rb').forEach(function(x){x.className='rb';x.style.background=''});
+    b.className='rb sel';b.style.background='#48CAC1';delta.style.display='block';
+    if(n<S.rate1){delta.textContent='Sa '+S.rate1+' na '+n+'. Osećaj prolazi.';delta.style.color='rgba(255,255,255,0.9)'}
+    else{delta.textContent=n===S.rate1?'Isto. Nekad treba vise vremena.':'Porasla. Nastavi.';delta.style.color='rgba(255,255,255,0.4)'}
+    nb.disabled=false};grid.appendChild(b)})(n)}
+  inner.appendChild(grid);inner.appendChild(delta);nb.onclick=function(){renderShame()};
+  inner.appendChild(nb);s.appendChild(inner);root.appendChild(s);
+}
+
+function renderShame(){
+  root.innerHTML='';var s=h('div','sf');var inner=h('div','sfi fi');inner.style.justifyContent='flex-start';inner.style.paddingTop='0';
+  makeTopbar(inner);inner.appendChild(bar(7));
+  var isNTF=(AI.shame_type==='ntf');
+  var screenLabel=isNTF?'Eksperiment tolerancije':'Shame Attack';
+  inner.appendChild(h('div','label',screenLabel));
+  var q='Ovo je rad u realnosti. Sve pre ovoga je bilo u glavi.';
+  showNessaMsg(inner, q, {delay:400});
+  inner.appendChild(makeWhy(isNTF?'Tolerancija na frustraciju raste samo kroz direktno iskustvo — ne kroz razgovor o njoj. Svaki put kad prođeš veče bez "nagrade" u hrani i vidiš da si OK, tvoj mozak briše jednu od pogrešnih jednadžbi.':'Namerno radiš ono čega se stidiš — uz punu svest, u stvarnoj situaciji. Katastrofa koju očekuješ obično ne dolazi. Taj jaz između očekivanja i realnosti je ono što menja uverenje.'));
+  var task=h('div','insight');task.innerHTML='<div class="il">Tvoj eksperiment</div><div class="it">'+esc(S.shame_task)+'</div>';inner.appendChild(task);
+  showNessaMsg(inner, 'Pre nego što to uradiš — napiši šta OČEKUJEŠ da će se desiti.', {delay:1600, speak:false});
+  var nb=h('button','bg','Završi i sačuvaj');nb.disabled=!S.shame_expect;
+  var t=makeTa('Očekujem da ce se desiti...',S.shame_expect,function(v){S.shame_expect=v;nb.disabled=!v});
+  inner.appendChild(t.wrap);nb.onclick=function(){saveSession();renderVictory()};
+  var bb=h('button','bs','Preskoči');bb.onclick=function(){S.shame_task='';S.shame_expect='';saveSession();renderVictory()};
+  inner.appendChild(nb);inner.appendChild(bb);s.appendChild(inner);root.appendChild(s);
+}
+
+function renderVictory(){
+  root.innerHTML='';var s=h('div','sf');var inner=h('div','sfi fi');inner.style.justifyContent='flex-start';inner.style.paddingTop='32px';
+  speak('Sesija završena. Intenzitet sa '+S.rate1+' na '+S.rate2+'.');
+  inner.innerHTML+='<div style="text-align:center;margin-bottom:24px"><div style="width:60px;height:60px;border-radius:50%;background:rgba(126,184,168,0.1);display:inline-flex;align-items:center;justify-content:center;font-size:26px;color:#7EB8A8">&#10003;</div></div>'+
+    '<h2 class="t2" style="text-align:center;color:#fff">Sesija završena.</h2>'+
+    '<p style="text-align:center;margin-bottom:6px;color:rgba(255,255,255,0.85);font-size:14px">Intenzitet: '+S.rate1+' \u2192 '+S.rate2+'</p>'+
+    (S.shame_task?'<p class="hint" style="text-align:center;margin-bottom:24px">Ne zaboravi shame attack.</p>':'<p class="hint" style="text-align:center;margin-bottom:24px">Sačuvano.</p>');
+  var vOld=h('div','old-b');vOld.style.marginBottom='8px';
+  vOld.innerHTML='<div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(180,60,60,0.5);margin-bottom:8px;font-weight:600">Staro uverenje</div><div style="font-family:Instrument Serif,Georgia,serif;font-size:15px;color:rgba(180,60,60,0.5);line-height:1.6;font-style:italic;text-decoration:line-through">„'+esc(S.b)+'“</div>';
+  inner.appendChild(vOld);
+  inner.appendChild(h('div','','<div style="text-align:center;font-size:18px;color:rgba(72,202,193,0.5);margin:6px 0">\u2193</div>'));
+  var vNew=h('div','new-b');vNew.style.marginBottom='20px';
+  vNew.innerHTML='<div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#48CAC1;margin-bottom:8px;font-weight:600">Novo uverenje</div><div style="font-family:Instrument Serif,Georgia,serif;font-size:15px;color:#1a1a2e;line-height:1.6;font-style:italic">„'+esc(S.e_gen)+'“</div>';
+  inner.appendChild(vNew);
+  if(S.reflections&&S.reflections.filter(Boolean).length>0){
+    var rCard=h('div','insight');rCard.style.marginBottom='16px';
+    var rHtml='<div class="il">Tvoji uvidi iz sesije</div>';
+    S.reflections.filter(Boolean).forEach(function(r){
+      rHtml+='<div style="margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid rgba(26,26,46,0.07)">'+
+        '<div style="font-size:11px;color:rgba(26,26,46,0.4);margin-bottom:4px;font-style:italic">'+esc(r.q)+'</div>'+
+        '<div style="font-size:14px;color:#1a1a2e;line-height:1.5">"'+esc(r.a)+'"</div></div>';
+    });
+    rCard.innerHTML=rHtml;inner.appendChild(rCard);
+  }
+  var nb=h('button','bp','Početni ekran');nb.onclick=renderHome;inner.appendChild(nb);
+  s.appendChild(inner);root.appendChild(s);
+}
+
+function renderReview(idx,sess){
+  root.innerHTML='';var s=h('div','sf');var inner=h('div','sfi fi');inner.style.justifyContent='flex-start';inner.style.paddingTop='0';
+  makeTopbar(inner);
+  inner.appendChild(h('div','label','Shame Attack \u2014 Rezultat'));
+  var q='Hajde da uporedimo očekivanje i realnost.';
+  showNessaMsg(inner, q, {delay:400});
+  var task=h('div','insight');task.innerHTML='<div class="il">Eksperiment</div><div class="it">'+esc(sess.shame)+'</div>';inner.appendChild(task);
+  var exp=h('div','old-b');
+  exp.innerHTML='<div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(200,80,80,0.5);margin-bottom:10px;font-weight:600">Očekivanje</div><div style="font-size:14px;color:rgba(26,26,46,0.6);line-height:1.6">'+esc(sess.expect)+'</div>';
+  inner.appendChild(exp);
+  showNessaMsg(inner, 'Šta se ZAISTA desilo?', {delay:1600, speak:false});
+  var nb=h('button','bg','Sačuvaj');nb.disabled=true;
+  var t=makeTa('Šta se zaista desilo...','',function(v){nb.disabled=!v});inner.appendChild(t.wrap);
+  nb.onclick=async function(){
+    var actual=t.ta.value.trim();if(!actual)return;
+    nb.disabled=true;nb.textContent='Analiziram...';
+    completeSA(idx,actual);
+    inner.innerHTML='';
+    inner.appendChild(h('div','label','Jaz'));
+    // show cards immediately while AI loads
+    var e2=h('div','old-b');e2.innerHTML='<div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(200,100,100,0.5);margin-bottom:8px">Očekivanje</div><div style="font-size:14px;color:rgba(180,60,60,0.4);line-height:1.6;text-decoration:line-through">'+esc(sess.expect)+'</div>';inner.appendChild(e2);
+    inner.appendChild(h('div','','<div style="text-align:center;font-size:18px;color:rgba(72,202,193,0.5);margin:8px 0">\u2193</div>'));
+    var a2=h('div','new-b');a2.innerHTML='<div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#48CAC1;margin-bottom:8px;font-weight:600">Realnost</div><div style="font-size:14px;color:#1a1a2e;line-height:1.6">'+esc(actual)+'</div>';inner.appendChild(a2);
+    // Nessa analysis bubble placeholder
+    var aiName=h('div','nessa-name');aiName.textContent='Nessa';inner.appendChild(aiName);
+    var aiRow=h('div','nessa-row');
+    var aiAv=document.createElement('img');aiAv.className='nessa-av';aiAv.src=NESSA_AV;aiAv.alt='Nessa';
+    var aiBub=h('div','nessa-bubble small');aiBub.textContent='...';aiBub.style.minHeight='50px';
+    aiRow.appendChild(aiAv);aiRow.appendChild(aiBub);inner.appendChild(aiRow);
+    var hb=h('button','bp','Početni ekran');hb.onclick=renderHome;inner.appendChild(hb);
+    // fetch AI analysis
+    try{
+      var resp=await fetch('/api/gap',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({b:sess.b||S.b,expect:sess.expect,actual:actual})});
+      var data=await resp.json();
+      var analysis=data.analysis||'Svaki put kad vidiš ovaj jaz, tvoj mozak uči da katastrofa nije došla — i sledeći put strah je manji.';
+      aiBub.textContent=analysis;
+      speak(analysis);
+    }catch(e){
+      aiBub.textContent='Pogledaj razliku. Ovaj jaz je dokaz tvom nervnom sistemu.';
+      speak('Pogledaj razliku. Ovaj jaz je dokaz tvom nervnom sistemu.');
+    }
+  };
+  inner.appendChild(nb);var bb=h('button','bs','Nazad');bb.onclick=renderHome;inner.appendChild(bb);
+  s.appendChild(inner);root.appendChild(s);
+}
+
+function renderHistory(){
+  root.innerHTML='';var s=h('div','sf');var inner=h('div','sfi fi');inner.style.justifyContent='flex-start';inner.style.paddingTop='0';
+  makeTopbar(inner);var histLabel=h('div','label','Istorija');histLabel.style.color='rgba(255,255,255,0.9)';inner.appendChild(histLabel);
+  var hi=loadHist();
+  if(!hi.length){inner.appendChild(h('p','hint','Nema sesija.'));s.appendChild(inner);root.appendChild(s);return}
+  renderDashboard(inner,hi);
+  hi.forEach(function(ses,idx){var item=h('div','hist-item');item.style.cursor='pointer';
+    var d=new Date(ses.ts);var ds=d.getDate()+'.'+(d.getMonth()+1)+'. '+d.getHours()+':'+('0'+d.getMinutes()).slice(-2);
+    var rateColor=ses.r2<ses.r1?'#48CAC1':'rgba(26,26,46,0.4)';
+    var badges='<span class="badge" style="background:rgba(72,202,193,0.12);color:#48CAC1">'+ses.r1+' → '+ses.r2+'</span>';
+    if(ses.shame&&!ses.done)badges+='<span class="badge badge-warn">SA čeka</span>';
+    if(ses.done)badges+='<span class="badge" style="background:rgba(72,202,193,0.12);color:#48CAC1">SA završen</span>';
+    var ePreview=ses.e?'<div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(26,26,46,0.07)">'+
+      '<div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#48CAC1;margin-bottom:4px;font-weight:600">Novo uverenje</div>'+
+      '<div style="font-size:13px;color:#1a1a2e;line-height:1.5;font-style:italic">„'+esc(ses.e)+'“</div>'+
+      '</div>':'';
+    item.innerHTML=
+      '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">'+
+        '<div style="font-size:12px;color:rgba(26,26,46,0.4)">'+ds+'</div>'+
+        '<div style="font-size:11px;color:rgba(26,26,46,0.35)">detalji ›</div>'+
+      '</div>'+
+      '<div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(26,26,46,0.35);margin-bottom:4px;font-weight:600">Staro uverenje</div>'+
+      '<div style="font-size:14px;color:#1a1a2e;line-height:1.5;font-style:italic">„'+esc(ses.b).substring(0,90)+(ses.b.length>90?'…':'')+'“</div>'+
+      ePreview+
+      '<div style="margin-top:10px">'+badges+'</div>';
+    item.onclick=function(){
+      if(ses.shame&&!ses.done){renderReview(idx,ses)}else{renderSessionDetail(ses,idx)}
+    };
+    inner.appendChild(item)});
+  s.appendChild(inner);root.appendChild(s);
+}
+
+function renderSessionDetail(ses,idx){
+  root.innerHTML='';var s=h('div','sf');var inner=h('div','sfi fi');inner.style.justifyContent='flex-start';inner.style.paddingTop='0';
+  makeTopbar(inner);
+  var d=new Date(ses.ts);var ds=d.getDate()+'.'+(d.getMonth()+1)+'. '+d.getFullYear()+' '+d.getHours()+':'+('0'+d.getMinutes()).slice(-2);
+  inner.appendChild(h('div','ldim',ds));
+  inner.appendChild(h('div','label','Sesija'));
+
+  // Situacija
+  if(ses.a){var ca=h('div','insight');ca.innerHTML='<div class="il">A — Situacija</div><div class="it">'+esc(ses.a)+'</div>';inner.appendChild(ca);}
+
+  // Staro → Novo uverenje
+  var bel=h('div','');bel.style.marginBottom='14px';
+  bel.innerHTML=
+    '<div class="old-b">'+
+      '<div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(200,80,80,0.6);margin-bottom:8px;font-weight:600">B — Staro uverenje</div>'+
+      '<div style="font-family:Instrument Serif,Georgia,serif;font-size:16px;color:rgba(200,80,80,0.7);line-height:1.6;font-style:italic;text-decoration:line-through">„'+esc(ses.b)+'“</div>'+
+    '</div>'+
+    '<div style="text-align:center;font-size:18px;color:rgba(72,202,193,0.5);margin:6px 0">↓</div>'+
+    (ses.e?
+      '<div class="new-b">'+
+        '<div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#48CAC1;margin-bottom:8px;font-weight:600">E — Novo uverenje</div>'+
+        '<div style="font-family:Instrument Serif,Georgia,serif;font-size:16px;color:#1a1a2e;line-height:1.6;font-style:italic">„'+esc(ses.e)+'“</div>'+
+      '</div>'
+    :'');
+  inner.appendChild(bel);
+
+  // Skala žudnje
+  var scale=h('div','insight');
+  var diff=ses.r2-ses.r1;
+  var diffTxt=diff<0?'↓ '+Math.abs(diff)+' manje':diff===0?'Isto':'↑ '+diff+' vise';
+  var diffCol=diff<0?'#48CAC1':diff===0?'rgba(26,26,46,0.4)':'rgba(200,80,80,0.6)';
+  scale.innerHTML='<div class="il">Intenzitet žudnje</div>'+
+    '<div style="display:flex;align-items:center;gap:16px;margin-top:4px">'+
+      '<div style="text-align:center"><div style="font-size:28px;font-weight:700;color:#1a1a2e">'+ses.r1+'</div><div style="font-size:11px;color:rgba(26,26,46,0.4)">Pre</div></div>'+
+      '<div style="font-size:20px;color:rgba(26,26,46,0.2)">→</div>'+
+      '<div style="text-align:center"><div style="font-size:28px;font-weight:700;color:#1a1a2e">'+ses.r2+'</div><div style="font-size:11px;color:rgba(26,26,46,0.4)">Posle</div></div>'+
+      '<div style="margin-left:auto;font-size:14px;font-weight:600;color:'+diffCol+'">'+diffTxt+'</div>'+
+    '</div>';
+  inner.appendChild(scale);
+
+  // Shame attack
+  if(ses.shame){
+    var sa=h('div','insight');
+    sa.innerHTML='<div class="il">Shame Attack</div>'+
+      '<div class="it" style="margin-bottom:10px">'+esc(ses.shame)+'</div>'+
+      (ses.expect?'<div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(26,26,46,0.35);margin-bottom:4px;margin-top:10px;font-weight:600">Očekivanje</div>'+
+        '<div style="font-size:13px;color:rgba(26,26,46,0.5);line-height:1.5;font-style:italic">„'+esc(ses.expect)+'“</div>':'')+
+      (ses.actual?'<div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#48CAC1;margin-bottom:4px;margin-top:12px;font-weight:600">Realnost</div>'+
+        '<div style="font-size:13px;color:#1a1a2e;line-height:1.5;font-weight:500">„'+esc(ses.actual)+'“</div>':
+        '<div style="font-size:12px;color:rgba(200,160,80,0.8);margin-top:10px;font-weight:500">Još nije urađen</div>');
+    inner.appendChild(sa);
+  }
+
+  var bb=h('button','bs','Nazad');bb.onclick=renderHistory;inner.appendChild(bb);
+  s.appendChild(inner);root.appendChild(s);
+}
+
+renderHome();
+</script>
+</body>
+</html>
