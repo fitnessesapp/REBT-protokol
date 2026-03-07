@@ -77,7 +77,7 @@ exports.handler = async (event) => {
       // Already MP3 — send directly
       return {
         statusCode: 200,
-        headers: { 'Content-Type': 'audio/mpeg', 'Cache-Control': 'public, max-age=3600', 'X-Audio-Mime': mimeType },
+        headers: { 'Content-Type': 'audio/mpeg', 'Cache-Control': 'no-store', 'X-Audio-Mime': mimeType },
         body: audioBase64,
         isBase64Encoded: true
       };
@@ -89,7 +89,7 @@ exports.handler = async (event) => {
 
     return {
       statusCode: 200,
-      headers: { 'Content-Type': 'audio/wav', 'Cache-Control': 'public, max-age=3600', 'X-Audio-Mime': mimeType },
+      headers: { 'Content-Type': 'audio/wav', 'Cache-Control': 'no-store', 'X-Audio-Mime': mimeType },
       body: wavBuffer.toString('base64'),
       isBase64Encoded: true
     };
