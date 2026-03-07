@@ -709,7 +709,7 @@ function renderBody1(){
   inner.appendChild(h('div','label','Telo \u2014 Intenzitet'));
   var q='Koliko je jak taj osećaj ili pritisak sad? Daj mu broj.';
   showNessaMsg(inner, q, {delay:400});
-  inner.appendChild(makeWhy('Merimo intenzitet pre i posle — da bi tvoj nervni sistem video konkretan dokaz da talas osećaja zaista prolazi. Broj nije procena vrednosti, samo termometar.'));
+  inner.appendChild(makeWhy('Merimo intenzitet pre i posle — da bi Vaš nervni sistem video konkretan dokaz da talas osećaja zaista prolazi. Broj nije procena vrednosti, samo termometar.'));
   var grid=h('div','rg');var nb=h('button','bp','Dalje');nb.disabled=true;
   for(var n=1;n<=10;n++){(function(n){var b=h('button','rb');b.textContent=n;
     b.onclick=function(){S.rate1=n;grid.querySelectorAll('.rb').forEach(function(x){x.className='rb';x.style.background=''});
@@ -756,8 +756,8 @@ function renderREI(){
      speak:'Izgovori naglas. '+S.e_gen,dur:15}
   ];
   var whyTexts=[
-    'Mozak ne razlikuje dobro zamišljenu scenu od stvarne. Kada svesno zamisliš najgori scenario i ostaneš u njemu — bez bežanja — živčani sistem uči da nije opasan.',
-    'Ellis je otkrio da možeš zadržati isti scenario u glavi ali promeniti TIP emocije — ne njen intenzitet. Iz iracionalne (krivica, panika) u odgovarajuću (nezadovoljstvo, žaljenje). Ovo je mišić koji se vežba.',
+    'Mozak ne razlikuje dobro zamišljenu scenu od stvarne. Kada svesno zamislite najgori scenario i ostanete u njemu — bez bežanja — Vaš nervni sistem uči da nije opasan.',
+    'Možete zadržati isti scenario u glavi ali promeniti TIP emocije — ne njen intenzitet. Iz iracionalne (krivica, panika) u odgovarajuću (nezadovoljstvo, žaljenje). Ovo je mišić koji se vežba.',
     'Izgovaranje naglas aktivira drugačije putanje u mozgu od puke misli. Novo uverenje počinje da se oseća kao Vaše tek kad ga čujete sopstvenim glasom.'
   ];
   var step=0;
@@ -810,7 +810,7 @@ function renderShame(){
   inner.appendChild(h('div','label',screenLabel));
   var q='Ovo je rad u realnosti. Sve pre ovoga je bilo u glavi.';
   showNessaMsg(inner, q, {delay:400});
-  inner.appendChild(makeWhy(isNTF?'Tolerancija na frustraciju raste samo kroz direktno iskustvo — ne kroz razgovor o njoj. Svaki put kad prođeš veče bez "nagrade" u hrani i vidiš da si OK, tvoj mozak briše jednu od pogrešnih jednadžbi.':'Namerno radiš ono čega se stidiš — uz punu svest, u stvarnoj situaciji. Katastrofa koju očekuješ obično ne dolazi. Taj jaz između očekivanja i realnosti je ono što menja uverenje.'));
+  inner.appendChild(makeWhy(isNTF?'Tolerancija na frustraciju raste samo kroz direktno iskustvo — ne kroz razgovor o njoj. Svaki put kad prođete veče bez "nagrade" u hrani i vidite da ste OK, Vaš mozak briše jednu od pogrešnih jednadžbi.':'Namerno radite ono čega se stidite — uz punu svest, u stvarnoj situaciji. Katastrofa koju očekujete obično ne dolazi. Taj jaz između očekivanja i realnosti je ono što menja uverenje.'));
   var task=h('div','insight');task.innerHTML='<div class="il">Tvoj eksperiment</div><div class="it">'+esc(S.shame_task)+'</div>';inner.appendChild(task);
   showNessaMsg(inner, 'Pre nego što to uradite — napišite šta OČEKUJETE da će se desiti.', {delay:1600, speak:false});
   var nb=h('button','bg','Završi i sačuvaj');nb.disabled=!S.shame_expect;
@@ -882,11 +882,11 @@ function renderReview(idx,sess){
     try{
       var resp=await fetch('/api/gap',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({b:sess.b||S.b,expect:sess.expect,actual:actual})});
       var data=await resp.json();
-      var analysis=data.analysis||'Svaki put kad vidiš ovaj jaz, tvoj mozak uči da katastrofa nije došla — i sledeći put strah je manji.';
+      var analysis=data.analysis||'Svaki put kad vidite ovaj jaz, Vaš mozak uči da katastrofa nije došla — i sledeći put strah je manji.';
       aiBub.textContent=analysis;
       speak(analysis);
     }catch(e){
-      aiBub.textContent='Pogledaj razliku. Ovaj jaz je dokaz tvom nervnom sistemu.';
+      aiBub.textContent='Pogledajte razliku. Ovaj jaz je dokaz Vašem nervnom sistemu.';
       speak('Pogledaj razliku. Ovaj jaz je dokaz tvom nervnom sistemu.');
     }
   };
