@@ -21,10 +21,10 @@ Pre eksperimenta je očekivao: "${expect}"
 
 Napiši KRATKU personalizovanu analizu (2-3 rečenice) koja:
 1. Pominje klijentove tačne reči iz uverenja i situacije
-2. Objašnjava šta jaz između očekivanja i realnosti govori o tom uverenju (ili — ako se katastrofa zaista desila — šta to znači: "Desilo se, ali si preživeo/la")
+2. Objašnjava šta jaz između očekivanja i realnosti govori o tom uverenju (ili — ako se katastrofa zaista desila — šta to znači: "Desilo se, ali ste preživeli")
 3. Završava ohrabrujuće, kao topla terapeutkinja
 
-Govori direktno klijentu, koristiš "ti" formu. Srpski jezik. BEZ uvodnih fraza poput "Evo analize" ili "Odlično". Samo direktan komentar.`;
+Govori direktno klijentu, koristiš "Vi" formu (persiranje — "Vi", "Vaše", "ste", nikad "ti", "tvoje"). Srpski jezik. BEZ uvodnih fraza poput "Evo analize" ili "Odlično". Samo direktan komentar.`;
 
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`,
