@@ -28,6 +28,10 @@ exports.handler = async (event) => {
             speechConfig: {
               voiceConfig: {
                 prebuiltVoiceConfig: { voiceName: 'Aoede' }
+              },
+              audioConfig: {
+                audioEncoding: 'MP3',
+                speakingRate: 0.9
               }
             }
           }
