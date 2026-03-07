@@ -6,3 +6,8 @@
   from = "/api/rebt"
   to = "/.netlify/functions/rebt_api"
   status = 200
+
+[[redirects]]
+  from = "/api/tts"
+  to = "/.netlify/functions/tts_api"
+  status = 200
