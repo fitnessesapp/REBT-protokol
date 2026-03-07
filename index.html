@@ -273,12 +273,15 @@ function speak(text){
   stopAudio();
   var clean=cleanText(text);
   if(!clean)return;
+  // Only send first sentence for faster response
+  var first=(clean.match(/[^.!?]+[.!?]*/)||[clean])[0].trim();
+  if(!first)return;
   audioPlaying=true;
   updateSI(true);
   fetch('/api/tts',{
     method:'POST',
     headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({text:clean})
+    body:JSON.stringify({text:first})
   }).then(function(resp){
     if(!resp.ok)throw new Error('TTS '+resp.status);
     return resp.arrayBuffer();
