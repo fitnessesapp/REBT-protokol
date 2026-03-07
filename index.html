@@ -758,16 +758,30 @@ function renderReview(idx,sess){
   inner.appendChild(h('p','therapist','Sta se ZAISTA desilo?'));
   var nb=h('button','bg','Sacuvaj');nb.disabled=true;
   var t=makeTa('Sta se zaista desilo...','',function(v){nb.disabled=!v});inner.appendChild(t.wrap);
-  nb.onclick=function(){
-    var actual=t.ta.value.trim();if(!actual)return;completeSA(idx,actual);
+  nb.onclick=async function(){
+    var actual=t.ta.value.trim();if(!actual)return;
+    nb.disabled=true;nb.textContent='Analiziram...';
+    completeSA(idx,actual);
     inner.innerHTML='';
-    var q2='Pogledaj razliku. Ovaj jaz je dokaz tvom nervnom sistemu.';
-    inner.appendChild(h('div','label','Jaz'));inner.appendChild(h('p','therapist',q2));speak(q2);
+    inner.appendChild(h('div','label','Jaz'));
+    // show cards immediately while AI loads
     var e2=h('div','old-b');e2.innerHTML='<div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(200,100,100,0.5);margin-bottom:8px">Ocekivanje</div><div style="font-size:14px;color:rgba(180,60,60,0.4);line-height:1.6;text-decoration:line-through">'+esc(sess.expect)+'</div>';inner.appendChild(e2);
     inner.appendChild(h('div','','<div style="text-align:center;font-size:18px;color:rgba(72,202,193,0.5);margin:8px 0">\u2193</div>'));
     var a2=h('div','new-b');a2.innerHTML='<div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#48CAC1;margin-bottom:8px;font-weight:600">Realnost</div><div style="font-size:14px;color:#1a1a2e;line-height:1.6">'+esc(actual)+'</div>';inner.appendChild(a2);
-    inner.appendChild(h('p','hint','<br>Svaki put kad vidiš ovaj jaz, tvoj mozak uči da katastrofa nije došla — i sledeći put strah je manji.<br><br>'));
+    // AI analysis placeholder
+    var aiBox=h('p','therapist','...');aiBox.style.minHeight='60px';inner.appendChild(aiBox);
     var hb=h('button','bp','Pocetni ekran');hb.onclick=renderHome;inner.appendChild(hb);
+    // fetch AI analysis
+    try{
+      var resp=await fetch('/api/gap',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({b:sess.b||S.b,expect:sess.expect,actual:actual})});
+      var data=await resp.json();
+      var analysis=data.analysis||'Svaki put kad vidiš ovaj jaz, tvoj mozak uči da katastrofa nije došla — i sledeći put strah je manji.';
+      aiBox.textContent=analysis;
+      speak(analysis);
+    }catch(e){
+      var fallback='Pogledaj razliku. Ovaj jaz je dokaz tvom nervnom sistemu.';
+      aiBox.textContent=fallback;speak(fallback);
+    }
   };
   inner.appendChild(nb);var bb=h('button','bs','Nazad');bb.onclick=renderHome;inner.appendChild(bb);
   s.appendChild(inner);root.appendChild(s);
