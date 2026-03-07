@@ -460,7 +460,7 @@ async function generatePersonalized(){
     '  "shame_task": "DVA tipa na osnovu shame_type: (1) ntf — EKSPERIMENT TOLERANCIJE: klijent svesno bira alternativni izvor zadovoljstva iste veceri bez hrane, i belezi kako se osecao. (2) attack — pravi SHAME ATTACK koji napada strah/stid direktno. Konkretan, izvodljiv danas/sutra. 2-3 recenice.",\n'+
     '  "rei_scene": "NEGATIVNI REI scenario. Klijent zamislija kako POPUSTA i kako se oseca POSLE: krivica, stid, osećaj poraza. Koristi A situaciju i C_do ponasanje. NE opisuj pozitivnu alternativu. 1-2 recenice.",\n'+
     '  "rei_step2": "REI korak 2 — ZAMENA EMOCIJE po Ellis metodi. Klijent zadrzava ISTI negativni scenario ali menja TIP emocije iz iracionalne u odgovarajucu. Napisi instrukciju sa klijentovim tačnim emocijama iz C: Zadrzi taj isti scenario. Umešto [C emocija], pusti da bude [racionalna alternativa]. 1-2 recenice."\n'+
-    '}\n\nVAZNO: Odgovori SAMO JSON. Bez teksta pre ili posle. Bez backtick-a. Koristi klijentove tačne reci gde god mozes.';
+    '}\n\nVAZNO: Odgovori SAMO JSON. Bez teksta pre ili posle. Bez backtick-a. Koristi klijentove tačne reci gde god mozes. JEZIK: Obraćaj se klijentu sa "Vi" (veliko slovo) — u srpskom jeziku "Vi" kao množina je forma poštovanja kada se ne zna pol osobe. Dakle: "Da li Vi smatrate", "Kako Vi to doživljavate", "Vi ste rekli" — nikad "ti", "trebao si", "trebala si". Glagoli u prošlom vremenu: "Vi ste uradili", "Vi ste osećali" — ne "uradio/la si".';
   return await callAI(prompt);
 }
 
@@ -545,8 +545,8 @@ function renderHome(){
   s.appendChild(greetWrap);
 
   var greeting=pending
-    ? 'Čekam te. Jesi li uradio eksperiment?'
-    : 'Zdravo, ja sam Nessa. Šta te muči danas?';
+    ? 'Čekam Vas. Da li ste uradili eksperiment?'
+    : 'Zdravo, ja sam Nessa. Šta Vas muči danas?';
 
   showNessaMsg(greetWrap, greeting, {delay:600, speak:false});
 
@@ -574,7 +574,7 @@ function renderA(){
   root.innerHTML='';var s=h('div','sf');var inner=h('div','sfi fi');
   makeTopbar(inner);inner.appendChild(bar(0));
   inner.appendChild(h('div','label','A \u2014 Aktivirajući događaj'));
-  var q='Šta se upravo desilo ili dešava? Opiši situaciju samo činjenicama.';
+  var q='Šta se upravo desilo ili dešava? Opišite situaciju samo činjenicama.';
   showNessaMsg(inner, q, {delay:400, speak:false});
   // Greeting + question spoken together so stopAudio() doesn't interrupt
   speak('Zdravo, ja sam Nessa. ' + q);
@@ -590,10 +590,10 @@ function renderB(){
   makeTopbar(inner);inner.appendChild(bar(1));
   inner.appendChild(h('div','label','B \u2014 Uverenje'));
   var ib=h('div','insight');ib.innerHTML='<div class="il">Situacija</div><div class="it">"'+esc(S.a)+'"</div>';inner.appendChild(ib);
-  var q='Kad se to desilo, šta si rekao sebi? Koji glas se javio?';
+  var q='Kad se to desilo, šta ste rekli sebi? Koji glas se javio?';
   showNessaMsg(inner, q, {delay:400});
   var nb=h('button','bp','Dalje');nb.disabled=!S.b;
-  var t=makeTa('Šta ti kažeš sebi...',S.b,function(v){S.b=v;nb.disabled=!v});
+  var t=makeTa('Šta Vi kažete sebi...',S.b,function(v){S.b=v;nb.disabled=!v});
   inner.appendChild(t.wrap);nb.onclick=function(){renderC()};
   var bb=h('button','bs','Nazad');bb.onclick=function(){renderA()};
   inner.appendChild(nb);inner.appendChild(bb);s.appendChild(inner);root.appendChild(s);t.ta.focus();
@@ -604,13 +604,13 @@ function renderC(){
   makeTopbar(inner);inner.appendChild(bar(2));
   inner.appendChild(h('div','label','C \u2014 Posledice'));
   var ib=h('div','insight');ib.innerHTML='<div class="il">Uverenje</div><div class="it">"'+esc(S.b)+'"</div>';inner.appendChild(ib);
-  var q1='Kako se osećaš kad ti to prođe kroz glavu? Šta osetiš u telu?';
+  var q1='Kako se osećate kad Vam to prođe kroz glavu? Šta osećate u telu?';
   showNessaMsg(inner, q1, {delay:400});
   var nb=h('button','bp','Dalje');function ck(){nb.disabled=!(S.c_feel&&S.c_do)}
   var t1=makeTa('Emocije i telesne senzacije...',S.c_feel,function(v){S.c_feel=v;ck()});inner.appendChild(t1.wrap);
   var q2='Zbog ovog uverenja — šta radiš, ili šta izbegavaš?';
   showNessaMsg(inner, q2, {delay:1800, speak:false});
-  var t2=makeTa('Šta radiš ili šta izbegavaš...',S.c_do,function(v){S.c_do=v;ck()});inner.appendChild(t2.wrap);
+  var t2=makeTa('Šta radite ili šta izbegavate...',S.c_do,function(v){S.c_do=v;ck()});inner.appendChild(t2.wrap);
   nb.disabled=!(S.c_feel&&S.c_do);
   nb.onclick=function(){renderLoading()};
   var bb=h('button','bs','Nazad');bb.onclick=function(){renderB()};
@@ -648,7 +648,7 @@ function renderD(){
   inner.appendChild(h('div','label','D \u2014 Osporavanje'));
   var q='Hajde da testiramo to uverenje.';
   showNessaMsg(inner, q, {delay:300});
-  inner.appendChild(makeWhy('Iracionalna uverenja opstaju jer ih nikad nismo direktno ispitali. Ova tri testa ih izlažu svetlosti — logičkom, empirijskom i praktičnom. Uverenje koje ne preživi nijedan od njih nema osnove da i dalje upravlja tvojim osećanjima.'));
+  inner.appendChild(makeWhy('Iracionalna uverenja opstaju jer ih nikad nismo direktno ispitali. Ova tri testa ih izlažu svetlosti — logičkom, empirijskom i praktičnom. Uverenje koje ne preživi nijedan od njih nema osnove da i dalje upravlja Vašim osećanjima.'));
   var ib=h('div','insight');ib.innerHTML='<div class="il">Pod lupom</div><div class="it">"'+esc(S.b)+'"</div>';inner.appendChild(ib);
   var cx=h('div','ctx');
   cx.innerHTML='<div class="cl">Tvoje C</div><div class="cv"><strong>Osećanja:</strong> '+esc(S.c_feel)+'</div><div class="cv" style="margin-top:6px"><strong>Ponasanje:</strong> '+esc(S.c_do)+'</div>';
@@ -696,7 +696,7 @@ function renderE(){
   inner.appendChild(nb2);
   setTimeout(function(){speak(S.e_gen)},2200);
   inner.appendChild(h('p','hint','Prilagodi ako želiš. Ako odgovara, ostavi prazno.<br><br>'));
-  var t=makeTa('Tvoja verzija (opciono)...','',function(v){if(v)S.e_gen=v;else S.e_gen=AI.e_new_belief||''});
+  var t=makeTa('Vaša verzija (opciono)...','',function(v){if(v)S.e_gen=v;else S.e_gen=AI.e_new_belief||''});
   t.ta.style.minHeight='70px';inner.appendChild(t.wrap);
   var nb=h('button','bg','Dalje \u2014 Telesni rad');nb.onclick=function(){renderBody1()};
   var bb=h('button','bs','Nazad');bb.onclick=function(){renderD()};
@@ -758,7 +758,7 @@ function renderREI(){
   var whyTexts=[
     'Mozak ne razlikuje dobro zamišljenu scenu od stvarne. Kada svesno zamisliš najgori scenario i ostaneš u njemu — bez bežanja — živčani sistem uči da nije opasan.',
     'Ellis je otkrio da možeš zadržati isti scenario u glavi ali promeniti TIP emocije — ne njen intenzitet. Iz iracionalne (krivica, panika) u odgovarajuću (nezadovoljstvo, žaljenje). Ovo je mišić koji se vežba.',
-    'Izgovaranje naglas aktivira drugačije putanje u mozgu od puke misli. Novo uverenje počinje da se oseća kao tvoje tek kad ga čuješ sopstvenim glasom.'
+    'Izgovaranje naglas aktivira drugačije putanje u mozgu od puke misli. Novo uverenje počinje da se oseća kao Vaše tek kad ga čujete sopstvenim glasom.'
   ];
   var step=0;
   var instrBox=h('div','');instrBox.style.cssText='background:rgba(255,255,255,0.15);border:1.5px solid rgba(255,255,255,0.3);border-radius:16px;padding:24px 20px;margin:16px 0;text-align:center;min-height:130px;display:flex;align-items:center;justify-content:center';
@@ -788,7 +788,7 @@ function renderBody3(){
   inner.appendChild(h('div','label','Provera'));
   var q='Kako je taj osećaj sad?';
   showNessaMsg(inner, q, {delay:400});
-  inner.appendChild(h('p','hint','Bio/la je <strong>'+S.rate1+'/10</strong> pre REI.<br><br>'));
+  inner.appendChild(h('p','hint','Bilo je <strong>'+S.rate1+'/10</strong> pre REI.<br><br>'));
   var grid=h('div','rg');
   var delta=h('p','');delta.style.cssText='font-size:14px;margin:12px 0 20px;text-align:center;display:none';
   var nb=h('button','bg','Dalje \u2014 Shame Attack');nb.disabled=true;
@@ -812,7 +812,7 @@ function renderShame(){
   showNessaMsg(inner, q, {delay:400});
   inner.appendChild(makeWhy(isNTF?'Tolerancija na frustraciju raste samo kroz direktno iskustvo — ne kroz razgovor o njoj. Svaki put kad prođeš veče bez "nagrade" u hrani i vidiš da si OK, tvoj mozak briše jednu od pogrešnih jednadžbi.':'Namerno radiš ono čega se stidiš — uz punu svest, u stvarnoj situaciji. Katastrofa koju očekuješ obično ne dolazi. Taj jaz između očekivanja i realnosti je ono što menja uverenje.'));
   var task=h('div','insight');task.innerHTML='<div class="il">Tvoj eksperiment</div><div class="it">'+esc(S.shame_task)+'</div>';inner.appendChild(task);
-  showNessaMsg(inner, 'Pre nego što to uradiš — napiši šta OČEKUJEŠ da će se desiti.', {delay:1600, speak:false});
+  showNessaMsg(inner, 'Pre nego što to uradite — napišite šta OČEKUJETE da će se desiti.', {delay:1600, speak:false});
   var nb=h('button','bg','Završi i sačuvaj');nb.disabled=!S.shame_expect;
   var t=makeTa('Očekujem da ce se desiti...',S.shame_expect,function(v){S.shame_expect=v;nb.disabled=!v});
   inner.appendChild(t.wrap);nb.onclick=function(){saveSession();renderVictory()};
