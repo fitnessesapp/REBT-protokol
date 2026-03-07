@@ -475,21 +475,25 @@ function showNessaMsg(container, html, opts){
   var delay=opts.delay!=null?opts.delay:1100;
   var doSpeak=opts.speak!==false;
 
-  // typing row
+  // Reserve slot at current position in DOM
+  var slot=document.createElement('div');
+  container.appendChild(slot);
+
+  // typing row inside slot immediately
   var tr=document.createElement('div');tr.className='typing-row';
   tr.appendChild(nesAvEl());
   var tb=document.createElement('div');tb.className='typing-bubble';
   for(var i=0;i<3;i++){var d=document.createElement('div');d.className='tdot';tb.appendChild(d);}
-  tr.appendChild(tb);container.appendChild(tr);
+  tr.appendChild(tb);slot.appendChild(tr);
 
   setTimeout(function(){
-    if(tr.parentNode)tr.parentNode.removeChild(tr);
+    slot.innerHTML='';
     var name=document.createElement('div');name.className='nessa-name';name.textContent='Nessa';
-    container.appendChild(name);
+    slot.appendChild(name);
     var row=document.createElement('div');row.className='nessa-row';
     row.appendChild(nesAvEl());
     var bub=document.createElement('div');bub.className='nessa-bubble'+(opts.small?' small':'');
-    bub.innerHTML=html;row.appendChild(bub);container.appendChild(row);
+    bub.innerHTML=html;row.appendChild(bub);slot.appendChild(row);
     if(doSpeak){speak(html.replace(/<[^>]*>/g,''));}
     if(opts.after)opts.after();
   },delay);
