@@ -39,13 +39,11 @@ exports.handler = async (event) => {
     );
 
     const data = await response.json();
-    console.log('[TTS] status:', response.status, 'keys:', Object.keys(data));
 
     if (!response.ok || !data.audioContent) {
-      console.error('[TTS] Google error:', JSON.stringify(data));
       return {
         statusCode: 502,
-        body: JSON.stringify({ error: data.error?.message || 'TTS failed' })
+        body: JSON.stringify({ error: data.error?.message || 'TTS failed', googleStatus: response.status, googleResponse: JSON.stringify(data).substring(0, 500) })
       };
     }
 
