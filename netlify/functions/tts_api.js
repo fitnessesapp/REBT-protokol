@@ -63,6 +63,7 @@ exports.handler = async (event) => {
 
     const data = await response.json();
     const audioBase64 = data?.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+    const mimeType = data?.candidates?.[0]?.content?.parts?.[0]?.inlineData?.mimeType || 'unknown';
 
     if (!response.ok || !audioBase64) {
       return {
@@ -71,16 +72,24 @@ exports.handler = async (event) => {
       };
     }
 
-    // Gemini returns raw PCM (s16le 24kHz mono) — wrap in WAV header
+    // Check actual format from mimeType
+    if (mimeType.includes('mp3') || mimeType.includes('mpeg')) {
+      // Already MP3 — send directly
+      return {
+        statusCode: 200,
+        headers: { 'Content-Type': 'audio/mpeg', 'Cache-Control': 'public, max-age=3600', 'X-Audio-Mime': mimeType },
+        body: audioBase64,
+        isBase64Encoded: true
+      };
+    }
+
+    // PCM or unknown — wrap in WAV
     const pcmBuffer = Buffer.from(audioBase64, 'base64');
     const wavBuffer = pcmToWav(pcmBuffer);
 
     return {
       statusCode: 200,
-      headers: {
-        'Content-Type': 'audio/wav',
-        'Cache-Control': 'public, max-age=3600'
-      },
+      headers: { 'Content-Type': 'audio/wav', 'Cache-Control': 'public, max-age=3600', 'X-Audio-Mime': mimeType },
       body: wavBuffer.toString('base64'),
       isBase64Encoded: true
     };
