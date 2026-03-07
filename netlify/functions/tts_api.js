@@ -3,7 +3,7 @@ exports.handler = async (event) => {
     return { statusCode: 405, body: 'Method Not Allowed' };
   }
 
-  const API_KEY = process.env.GOOGLE_TTS_API_KEY;
+  const API_KEY = process.env.GEMINI_API_KEY;
   if (!API_KEY) {
     return { statusCode: 500, body: JSON.stringify({ error: 'No TTS API key' }) };
   }
@@ -39,6 +39,7 @@ exports.handler = async (event) => {
     );
 
     const data = await response.json();
+    console.log('[TTS] status:', response.status, 'keys:', Object.keys(data));
 
     if (!response.ok || !data.audioContent) {
       console.error('[TTS] Google error:', JSON.stringify(data));
