@@ -268,78 +268,32 @@ function getAudioCtx(){
 function cleanText(text){
   return text.replace(/<[^>]*>/g,'').replace(/—/g,', ').replace(/→/g,' u ').replace(/„|“/g,'"').trim();
 }
-function splitSentences(text){
-  // split on sentence endings, keep chunk under 200 chars
-  var parts=text.match(/[^.!?]+[.!?\s]*|[^.!?]+$/g)||[text];
-  var chunks=[],cur='';
-  parts.forEach(function(p){
-    if((cur+p).length>200&&cur){chunks.push(cur.trim());cur=p;}
-    else cur+=p;
-  });
-  if(cur.trim())chunks.push(cur.trim());
-  return chunks.filter(Boolean);
-}
-
-async function fetchTTSAudio(text){
-  var resp=await fetch('/api/tts',{
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({text:text})
-  });
-  if(!resp.ok)throw new Error('TTS HTTP '+resp.status);
-  var arrayBuf=await resp.arrayBuffer();
-  return arrayBuf;
-}
-
 function speak(text){
   if(!AUDIO)return;
   stopAudio();
   var clean=cleanText(text);
   if(!clean)return;
-  var sentences=splitSentences(clean);
-  if(!sentences.length)return;
-  audioQueue=sentences.slice();
   audioPlaying=true;
   updateSI(true);
-  // prefetch first two
-  var prefetched={};
-  function prefetch(idx){
-    if(idx<audioQueue.length&&!prefetched[idx]){
-      prefetched[idx]='loading';
-      fetchTTSAudio(audioQueue[idx]).then(function(buf){
-        prefetched[idx]=buf;
-      }).catch(function(){prefetched[idx]='error';});
-    }
-  }
-  prefetch(0);prefetch(1);
-
-  var idx=0;
-  function playIdx(){
-    if(!audioPlaying||idx>=audioQueue.length){
-      audioPlaying=false;updateSI(false);return;
-    }
-    prefetch(idx+2); // prefetch ahead
-    function waitAndPlay(){
-      if(prefetched[idx]instanceof ArrayBuffer){
-        var ctx=getAudioCtx();
-        ctx.decodeAudioData(prefetched[idx].slice(0),function(decoded){
-          if(!audioPlaying)return;
-          var src=ctx.createBufferSource();
-          src.buffer=decoded;
-          src.connect(ctx.destination);
-          _currentSource=src;
-          src.onended=function(){idx++;setTimeout(playIdx,60);};
-          src.start(0);
-        },function(){idx++;playIdx();});
-      } else if(prefetched[idx]==='error'){
-        idx++;playIdx();
-      } else {
-        setTimeout(waitAndPlay,50); // still loading
-      }
-    }
-    waitAndPlay();
-  }
-  playIdx();
+  fetch('/api/tts',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({text:clean})
+  }).then(function(resp){
+    if(!resp.ok)throw new Error('TTS '+resp.status);
+    return resp.arrayBuffer();
+  }).then(function(buf){
+    if(!audioPlaying)return;
+    var ctx=getAudioCtx();
+    ctx.decodeAudioData(buf,function(decoded){
+      if(!audioPlaying)return;
+      var src=ctx.createBufferSource();
+      src.buffer=decoded;src.connect(ctx.destination);
+      _currentSource=src;
+      src.onended=function(){audioPlaying=false;updateSI(false);};
+      src.start(0);
+    },function(){audioPlaying=false;updateSI(false);});
+  }).catch(function(){audioPlaying=false;updateSI(false);});
 }
 
 function stopAudio(){
