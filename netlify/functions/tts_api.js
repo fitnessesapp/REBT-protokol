@@ -22,7 +22,7 @@ exports.handler = async (event) => {
         body: JSON.stringify({
           input: {
             text: text.trim(),
-            prompt: 'Calm, warm female psychotherapist. Slow and reassuring.'
+            prompt: 'Calm, warm male psychotherapist. Slow and reassuring.'
           },
           voice: {
             languageCode: 'sr-rs',
